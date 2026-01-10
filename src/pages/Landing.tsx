@@ -981,7 +981,7 @@ const Landing = () => {
           <div className="flex justify-center items-center mb-4">
             <img src={SafeariLogo} alt="Safeari" className="h-7 md:h-8 w-auto" />
           </div>
-          <p className="text-xs md:text-sm">© 2025 Safeari. All rights reserved.</p>
+          <p className="text-xs md:text-sm">© 2026 Safeari. All rights reserved.</p>
           <p className="text-xs text-muted-foreground/70">
             A product by{" "}
             <a
@@ -990,7 +990,7 @@ const Landing = () => {
               rel="noopener noreferrer"
               className="text-primary hover:text-primary/80 hover:underline transition-colors duration-200 font-medium"
             >
-              CNB Code
+              CnB Code
             </a>
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 pt-2">

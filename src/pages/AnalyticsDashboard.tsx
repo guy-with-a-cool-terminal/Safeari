@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import {
-  Lock, Shield, Activity, Laptop, Eye, Clock, RefreshCw, FileDown, Info,
-  Loader2, CheckCircle, AlertCircle, Users
+  Lock, Shield, Activity, Laptop, Eye, RefreshCw, FileDown,
+  AlertCircle, Users, ChevronDown, Search, X
 } from "lucide-react";
 import {
   Select,
@@ -21,12 +22,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DonutChart from "@/components/dashboard/DonutChart";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useToast } from "@/hooks/use-toast";
 import { getExportLogs } from "@/lib/api";
-import type { LogEntry } from "@/lib/api/types";
 import { Link } from "react-router-dom";
 import DNSSetupDialog from "@/components/profile/DNSSetupDialog";
 import ExportConfirmDialog from "@/components/dashboard/ExportConfirmDialog";
@@ -40,15 +41,12 @@ import {
 import {
   ANALYTICS_CONFIG,
   calculateMetrics,
-  getProtectionStatus,
   groupBlockReasons,
   formatTimeline,
   formatStatus,
   extractSiteName,
   convertToCSV,
-  isAdTrackerReason,
   calculateTodaysHighlights,
-  getSeverityLevel,
   type BlockReason,
 } from "@/lib/analyticsUtils";
 import { getLogsLimit } from "@/lib/analyticsUtils";
@@ -58,24 +56,18 @@ const ParentAnalyticsDashboard = () => {
   const { subscriptionTier } = useSubscription();
   const { toast } = useToast();
 
-  // WORKAROUND: Default to "7d" instead of "1d" due to backend bug
-  // The 1d filter frequently fails to return new queries, causing empty analytics
-  // 7d filter is more reliable. Backend team investigating root cause.
   const [timeRange, setTimeRange] = useState("7d");
   const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [isExporting, setIsExporting] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
-  
-  // Block details dialog
   const [selectedBlockReason, setSelectedBlockReason] = useState<BlockReason | null>(null);
-  
-  // DNS Setup Dialog
   const [showDNSSetup, setShowDNSSetup] = useState(false);
-  
-  // Pagination
-  const [logsPage, setLogsPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("screenTime");
+  const [expandedDays, setExpandedDays] = useState<string[]>(["today"]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activityPage, setActivityPage] = useState(1);
+  const ACTIVITIES_PER_PAGE = 20;
 
-  // React Query hooks - each endpoint loads independently
   const profileIdStr = currentProfile?.id.toString();
   const logsLimit = getLogsLimit(timeRange);
 
@@ -85,7 +77,6 @@ const ParentAnalyticsDashboard = () => {
   const logsQuery = useQueryLogs(profileIdStr, logsLimit);
   const trackersQuery = useTrackerStats(profileIdStr, timeRange);
 
-  // Aggregate loading states
   const isInitialLoad =
     overviewQuery.isLoading ||
     domainsQuery.isLoading ||
@@ -100,7 +91,6 @@ const ParentAnalyticsDashboard = () => {
     logsQuery.isFetching ||
     trackersQuery.isFetching;
 
-  // Check for query errors (but only if no cached data available)
   const hasErrors =
     (overviewQuery.isError && !overviewQuery.data) ||
     (domainsQuery.isError && !domainsQuery.data) ||
@@ -108,7 +98,6 @@ const ParentAnalyticsDashboard = () => {
     (logsQuery.isError && !logsQuery.data) ||
     (trackersQuery.isError && !trackersQuery.data);
 
-  // Show error toast specifically for 1d filter failures
   useEffect(() => {
     if (hasErrors && timeRange === '1d') {
       toast({
@@ -126,7 +115,6 @@ const ParentAnalyticsDashboard = () => {
     }
   }, [hasErrors, timeRange, overviewQuery.data, toast]);
 
-  // Refresh all queries
   const refresh = () => {
     overviewQuery.refetch();
     domainsQuery.refetch();
@@ -140,13 +128,7 @@ const ParentAnalyticsDashboard = () => {
     });
   };
 
-  // Memoized computed values - prevent unnecessary recalculations
   const metrics = useMemo(() => calculateMetrics(overviewQuery.data), [overviewQuery.data]);
-  
-  const protectionStatus = useMemo(
-    () => getProtectionStatus(metrics.protectionRate, metrics.blocked, currentProfile?.display_name || ''),
-    [metrics.protectionRate, metrics.blocked, currentProfile?.display_name]
-  );
 
   const blockReasons = useMemo(
     () => groupBlockReasons(logsQuery.data?.data || []),
@@ -158,7 +140,6 @@ const ParentAnalyticsDashboard = () => {
     [timelineQuery.data, timeRange]
   );
 
-  // Calculate today's highlights - summary insights
   const highlights = useMemo(
     () => calculateTodaysHighlights(
       timelineQuery.data || [],
@@ -169,7 +150,6 @@ const ParentAnalyticsDashboard = () => {
     [timelineQuery.data, blockReasons, trackersQuery.data?.allowed_trackers, currentProfile?.display_name]
   );
 
-  // TIME RANGE LOGIC
   const isTimeRangeAvailable = (range: string): boolean => {
     if (!subscriptionTier) return range === "1d";
     
@@ -189,10 +169,8 @@ const ParentAnalyticsDashboard = () => {
       return;
     }
     setTimeRange(range);
-    setLogsPage(1); // Reset pagination
   };
 
-  // EXPORT LOGIC
   const handleExportClick = () => {
     setShowExportDialog(true);
   };
@@ -244,7 +222,12 @@ const ParentAnalyticsDashboard = () => {
     }
   };
 
-  // RENDER GUARDS
+  const toggleDay = (day: string) => {
+    setExpandedDays(prev => 
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
+  };
+
   if (!currentProfile) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -253,12 +236,11 @@ const ParentAnalyticsDashboard = () => {
     );
   }
 
-  // Show loading skeleton only on initial load (no cache available)
   if (isInitialLoad) {
     return (
       <div className="space-y-6 pb-20 lg:pb-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{currentProfile.display_name}'s Activity Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
         </div>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map(i => (
@@ -271,12 +253,11 @@ const ParentAnalyticsDashboard = () => {
     );
   }
 
-  // Empty state - no data yet
   if (!overviewQuery.isLoading && metrics.total === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-20 lg:pb-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{currentProfile.display_name}'s Protection Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
         </div>
 
         <Card className="border-2 border-dashed">
@@ -287,47 +268,19 @@ const ParentAnalyticsDashboard = () => {
             <div className="text-center space-y-2">
               <h3 className="text-xl font-semibold">Waiting for {currentProfile.display_name}'s First Activity...</h3>
               <p className="text-muted-foreground max-w-md">
-                Make sure you set up {currentProfile.display_name}'s devices as instructed. Once configured, activity will appear here automatically.
+                Make sure you set up {currentProfile.display_name}'s devices as instructed.
               </p>
             </div>
 
-            {/* Action buttons - Mobile optimized */}
             <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-2xl px-4 sm:px-0">
               <Button
                 onClick={() => setShowDNSSetup(true)}
                 size="lg"
-                className="w-full h-14 sm:h-12 text-base sm:text-sm"
+                className="w-full"
               >
-                <Shield className="h-5 w-5 mr-2 flex-shrink-0" />
-                <span className="hidden sm:inline">View DNS Setup Instructions</span>
-                <span className="sm:hidden">Setup DNS Instructions</span>
+                <Shield className="h-5 w-5 mr-2" />
+                View DNS Setup Instructions
               </Button>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="w-full h-14 sm:h-12 text-base sm:text-sm"
-                >
-                  <Link to="/dashboard/parental">
-                    <Users className="h-5 w-5 mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Explore Parental Controls</span>
-                    <span className="sm:hidden">Parental Controls</span>
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="w-full h-14 sm:h-12 text-base sm:text-sm"
-                >
-                  <Link to="/dashboard/security">
-                    <Lock className="h-5 w-5 mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Configure Security Settings</span>
-                    <span className="sm:hidden">Security Settings</span>
-                  </Link>
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -342,23 +295,60 @@ const ParentAnalyticsDashboard = () => {
     );
   }
 
-  // Extract data for rendering
   const devices = overviewQuery.data?.devices || [];
   const topAllowedDomains = (domainsQuery.data || []).slice(0, 15);
   const allowedTrackers = trackersQuery.data?.allowed_trackers || [];
   const trackerCount = trackersQuery.data?.summary.allowed_count || 0;
-
-  // Pagination
   const allLogs = logsQuery.data?.data || [];
-  const totalLogs = allLogs.length;
-  const paginatedLogs = allLogs.slice(0, logsPage * ANALYTICS_CONFIG.LOGS_PER_PAGE);
-  const hasMoreLogs = paginatedLogs.length < totalLogs;
+  
+  // Group logs by date for Recent Activity
+  const groupedLogs = useMemo(() => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const grouped: Record<string, typeof allLogs> = {
+      today: [],
+      yesterday: [],
+      older: []
+    };
+    
+    allLogs.forEach(log => {
+      const logDate = new Date(log.timestamp);
+      if (logDate.toDateString() === today.toDateString()) {
+        grouped.today.push(log);
+      } else if (logDate.toDateString() === yesterday.toDateString()) {
+        grouped.yesterday.push(log);
+      } else {
+        grouped.older.push(log);
+      }
+    });
+    
+    return grouped;
+  }, [allLogs]);
+
+  // Filter logs by search query
+  const filteredGroupedLogs = useMemo(() => {
+    if (!searchQuery) return groupedLogs;
+    
+    const filtered: Record<string, typeof allLogs> = {};
+    Object.keys(groupedLogs).forEach(key => {
+      filtered[key] = groupedLogs[key].filter(log =>
+        log.domain.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+    
+    return filtered;
+  }, [groupedLogs, searchQuery]);
+
+  // Calculate max value for timeline chart
+  const maxTimelineValue = Math.max(...chartData.map(d => d.allowed + d.blocked), 1);
 
   return (
-    <div className="space-y-6 pb-20 lg:pb-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-3xl font-bold">{currentProfile.display_name}'s Activity Dashboard</h1>
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6 max-w-[1400px] mx-auto">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
@@ -366,11 +356,11 @@ const ParentAnalyticsDashboard = () => {
             onClick={refresh}
             disabled={isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
           <Select value={exportFormat} onValueChange={(v: 'json' | 'csv') => setExportFormat(v)}>
-            <SelectTrigger className="w-24">
+            <SelectTrigger className="w-20 sm:w-24">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -384,14 +374,14 @@ const ParentAnalyticsDashboard = () => {
             onClick={handleExportClick}
             disabled={isExporting}
           >
-            <FileDown className="h-4 w-4 mr-2" />
-            Export
+            <FileDown className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
         </div>
       </div>
 
-      {/* Time Range Selector */}
-      <div className="flex gap-2 flex-wrap">
+      {/* TIME RANGE SELECTOR */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
         {ANALYTICS_CONFIG.TIME_RANGES.map((range) => {
           const available = isTimeRangeAvailable(range.value);
           return (
@@ -401,6 +391,7 @@ const ParentAnalyticsDashboard = () => {
               size="sm"
               disabled={!available}
               onClick={() => handleTimeRangeChange(range.value)}
+              className="whitespace-nowrap"
             >
               {!available && <Lock className="h-3 w-3 mr-1" />}
               {range.label}
@@ -409,498 +400,393 @@ const ParentAnalyticsDashboard = () => {
         })}
       </div>
 
-      {/* Today's Highlights - Summary Card */}
-      {metrics.total > 0 && (
-        <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
-              Today's Highlights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {/* Peak Activity */}
-              {highlights.peakHour && (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Peak Activity</p>
-                  <p className="text-base font-medium">
-                    {highlights.peakHour.time} with {highlights.peakHour.count.toLocaleString()} requests
-                  </p>
-                </div>
-              )}
-
-              {/* Top Block Reason */}
-              {highlights.topBlockedCategory && (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Top Block Reason</p>
-                  <p className="text-base font-medium">
-                    {highlights.topBlockedCategory.name} ({highlights.topBlockedCategory.count.toLocaleString()} blocks)
-                  </p>
-                </div>
-              )}
-
-              {/* Tracking Companies */}
-              {highlights.uniqueTrackers.count > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Tracking Companies</p>
-                  <p className="text-base font-medium">
-                    {highlights.uniqueTrackers.count} {highlights.uniqueTrackers.count === 1 ? 'company' : 'companies'} tracked {currentProfile.display_name} today
-                    {highlights.uniqueTrackers.topCompanies.length > 0 && (
-                      <span className="text-sm text-muted-foreground block mt-1">
-                        Including: {highlights.uniqueTrackers.topCompanies.join(', ')}
-                      </span>
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {/* Activity Pattern */}
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Activity Pattern</p>
-                <p className="text-base font-medium">{highlights.activityPattern}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Protection Status Card */}
-      <Card className={`border-2 ${protectionStatus.borderColor}`}>
-        <CardHeader>
-           <Shield className="h-5 w-5 text-primary" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-medium">Protection Rate</span>
-            <span className={`text-3xl font-bold ${protectionStatus.textColor}`}>
-              {metrics.protectionRate}%
-            </span>
-          </div>
-          
-          {/* Progress bar */}
-          <div className="w-full bg-muted rounded-full h-3 flex overflow-hidden">
-            <div 
-              className="bg-primary h-3 transition-all" 
-              style={{ width: `${100 - metrics.protectionRate}%` }}
-              title={`${metrics.allowed.toLocaleString()} allowed`}
+      {/* HERO SECTION - DONUT CHART + HIGHLIGHTS */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center text-center mb-6">
+            {/* RECHARTS DONUT CHART */}
+            <DonutChart 
+              safeCount={metrics.total - metrics.blocked}
+              blockedCount={metrics.blocked}
+              size={180}
+              className="mb-4"
             />
-            <div 
-              className="bg-destructive h-3 transition-all" 
-              style={{ width: `${metrics.protectionRate}%` }}
-              title={`${metrics.blocked.toLocaleString()} blocked`}
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 pt-2">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Threats Blocked</p>
-              <p className="text-2xl font-bold text-destructive">{metrics.blocked.toLocaleString()}</p>
+
+            <div className={`text-lg font-semibold mb-1 ${metrics.blocked === 0 ? 'text-green-600' : 'text-primary'}`}>
+              {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked today`}
             </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">{currentProfile.display_name}'s Internet Activity</p>
-              <p className="text-2xl font-bold text-primary">{metrics.total.toLocaleString()}</p>
+            <div className="text-sm text-muted-foreground">
+              {metrics.total.toLocaleString()} total · {metrics.blocked} blocked
             </div>
           </div>
-          
-          <Alert className={protectionStatus.bgColor}>
-            {metrics.blocked === 0 ? (
-              <CheckCircle className="h-4 w-4" />
-            ) : (
-              <Info className="h-4 w-4" />
-            )}
-            <AlertDescription>
-              <p className={`font-medium ${protectionStatus.textColor}`}>
-                {protectionStatus.message}
-              </p>
-              <p className="text-sm mt-1">{protectionStatus.description}</p>
-            </AlertDescription>
-          </Alert>
+
+          {/* QUICK HIGHLIGHTS */}
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground mb-1">Peak Activity</div>
+              <div className="text-base font-semibold">{highlights.peakHour?.time || 'N/A'}</div>
+              <div className="text-xs text-muted-foreground">{highlights.peakHour?.count.toLocaleString() || '0'} requests</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground mb-1">Trackers</div>
+              <div className="text-base font-semibold">{trackerCount}</div>
+              <div className="text-xs text-muted-foreground">companies</div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Key Metrics Row */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{currentProfile.display_name}'s Internet Activity</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.total.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">total requests</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Devices</CardTitle>
-            <Laptop className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{devices.length}</div>
-            <p className="text-xs text-muted-foreground truncate">
-              {devices.length > 0 ? devices[0].name : 'No devices'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Companies Watching {currentProfile.display_name} Online</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{trackerCount}</div>
-            <p className="text-xs text-muted-foreground">companies tracking</p>
-          </CardContent>
-        </Card>
-
-        {blockReasons.length > 0 && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Top Block Reason</CardTitle>
-              <Shield className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{blockReasons[0].count}</div>
-              <p className="text-xs text-muted-foreground truncate">{blockReasons[0].reason}</p>
+      {/* KEY METRICS CARDS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { icon: Activity, value: metrics.total, label: 'Total Requests', color: 'text-muted-foreground' },
+          { icon: Laptop, value: devices.length, label: 'Connected Devices', color: 'text-muted-foreground' },
+          { icon: Eye, value: trackerCount, label: 'Tracking Companies', color: 'text-muted-foreground' },
+          { icon: Shield, value: blockReasons.length > 0 ? blockReasons[0].count : 0, label: blockReasons.length > 0 ? blockReasons[0].reason.substring(0, 15) + '...' : 'No Blocks', color: 'text-muted-foreground' }
+        ].map((item, i) => (
+          <Card key={i} className="border">
+            <CardContent className="p-4">
+              <item.icon className={`h-5 w-5 ${item.color} mb-2`} />
+              <div className="text-2xl font-bold">{item.value}</div>
+              <div className="text-xs text-muted-foreground font-medium truncate">{item.label}</div>
             </CardContent>
           </Card>
-        )}
+        ))}
       </div>
 
-      {/* Tracker Alert - Enhanced with top companies */}
+      {/* TRACKER ALERT */}
       {trackerCount > 0 && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between gap-4">
+        <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex-1">
-              <strong>{trackerCount} companies</strong> are watching {currentProfile.display_name} online
+              <span className="font-semibold">{trackerCount} companies</span> tracking {currentProfile.display_name} online
               {allowedTrackers.length > 0 && (
-                <div className="text-sm mt-2 text-muted-foreground">
-                  Most tracked by: {allowedTrackers.slice(0, 5).map((t, idx) =>
-                    `${t.tracker} (${t.queries.toLocaleString()} times)`
-                  ).join(', ')}
-                  {allowedTrackers.length > 5 && ` +${allowedTrackers.length - 5} more`}
+                <div className="text-sm mt-1 text-muted-foreground">
+                  Including: {allowedTrackers.slice(0, 3).map(t => t.tracker).join(', ')}
                 </div>
               )}
             </div>
             <Link to="/dashboard/privacy">
-              <Button size="sm" variant="outline">Block Trackers</Button>
+              <Button size="sm" variant="outline" className="whitespace-nowrap">
+                Block Trackers
+              </Button>
             </Link>
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Activity Timeline - Show skeleton while loading */}
+      {/* TABBED SECTION */}
       <Card>
-        <CardHeader>
-          <CardTitle>{currentProfile.display_name}'s Activity Over Time</CardTitle>
-          {/* Plain-English summary below title */}
-          {!timelineQuery.isLoading && chartData.length > 0 && highlights.peakHour && (
-            <p className="text-sm text-muted-foreground mt-2">
-              {currentProfile.display_name}'s busiest time: {highlights.peakHour.time} with {highlights.peakHour.count.toLocaleString()} requests.
-              {highlights.topBlockedCategory && ` ${highlights.topBlockedCategory.count.toLocaleString()} threats blocked.`}
-            </p>
-          )}
-        </CardHeader>
-        <CardContent>
-          {timelineQuery.isLoading ? (
-            <div className="h-[300px] bg-muted/20 animate-pulse rounded" />
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: "hsl(var(--popover))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="allowed" 
-                  stroke="hsl(142 76% 36%)" 
-                  strokeWidth={2}
-                  name="Safe"
-                  dot={false}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="blocked" 
-                  stroke="hsl(0 84% 60%)" 
-                  strokeWidth={2}
-                  name="Blocked"
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="screenTime">Screen Time</TabsTrigger>
+            <TabsTrigger value="mostVisited">Most Visited</TabsTrigger>
+            <TabsTrigger value="blocked" className="relative">
+              Blocked
+              {blockReasons.length > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
+                  {blockReasons.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Two Column Layout */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* Most Visited Sites */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{currentProfile.display_name}'s Most Visited Sites</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {domainsQuery.isLoading ? (
-              <div className="space-y-2">
-                {[1,2,3].map(i => <div key={i} className="h-16 bg-muted/20 animate-pulse rounded" />)}
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                {topAllowedDomains.length > 0 ? (
-                  topAllowedDomains.map((domain, index) => {
-                    const { display, original } = extractSiteName({ root: domain.root, domain: domain.domain });
-                    return (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">{display}</p>
-                            {domain.tracker && <Badge variant="outline" className="text-xs">Tracker</Badge>}
-                          </div>
-                          <p className="text-xs text-muted-foreground truncate">{original}</p>
-                        </div>
-                        <div className="text-right ml-4">
-                          <p className="font-bold">{domain.queries}</p>
-                          <p className="text-xs text-muted-foreground">visits</p>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">No activity yet</p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>What We're Protecting {currentProfile.display_name} From</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-[500px] overflow-y-auto">
-              {blockReasons.length > 0 ? (
-                blockReasons.map((item, index) => {
-                  // Determine severity level for color coding
-                  const severity = getSeverityLevel(item.reason);
-                  const severityStyles = {
-                    high: {
-                      bg: 'bg-red-50 dark:bg-red-950/20',
-                      hover: 'hover:bg-red-100 dark:hover:bg-red-950/30',
-                      border: 'border-l-4 border-l-[hsl(var(--severity-high))]',
-                      text: 'text-[hsl(var(--severity-high))]'
-                    },
-                    medium: {
-                      bg: 'bg-amber-50 dark:bg-amber-950/20',
-                      hover: 'hover:bg-amber-100 dark:hover:bg-amber-950/30',
-                      border: 'border-l-4 border-l-[hsl(var(--severity-medium))]',
-                      text: 'text-[hsl(var(--severity-medium))]'
-                    },
-                    low: {
-                      bg: 'bg-blue-50 dark:bg-blue-950/20',
-                      hover: 'hover:bg-blue-100 dark:hover:bg-blue-950/30',
-                      border: 'border-l-4 border-l-[hsl(var(--severity-low))]',
-                      text: 'text-[hsl(var(--severity-low))]'
-                    }
-                  };
-                  const styles = severityStyles[severity];
-
+          <CardContent className="pt-6">
+            <TabsContent value="screenTime" className="mt-0">
+              <h3 className="text-sm font-semibold mb-4">Activity Over Time</h3>
+              <div className="h-56 flex items-end gap-1.5">
+                {chartData.map((item, i) => {
+                  const allowedHeight = ((item.allowed / maxTimelineValue) * 100);
+                  const blockedHeight = ((item.blocked / maxTimelineValue) * 100);
                   return (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedBlockReason(item)}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg ${styles.bg} ${styles.hover} ${styles.border} transition-colors cursor-pointer`}
-                    >
-                      <div className="flex-1 text-left">
-                        <p className={`font-medium ${styles.text}`}>{item.reason}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.domains.length} unique {item.domains.length === 1 ? 'site' : 'sites'} blocked
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p className={`font-bold ${styles.text}`}>{item.count}</p>
-                          <p className="text-xs text-muted-foreground">blocks</p>
+                    <div key={i} className="flex-1 flex flex-col items-center">
+                      <div className="w-full flex flex-col items-center mb-1">
+                        <div className="text-xs font-semibold mb-1 h-4">
+                          {item.allowed + item.blocked}
                         </div>
-                        <Shield className={`h-5 w-5 ${styles.text}`} />
+                        {item.blocked > 0 && (
+                          <div
+                            className="w-full bg-destructive rounded-t transition-all"
+                            style={{ height: `${blockedHeight}%`, minHeight: item.blocked > 0 ? '4px' : '0' }}
+                          />
+                        )}
+                        <div
+                          className="w-full bg-green-600 transition-all"
+                          style={{ height: `${allowedHeight}%`, minHeight: '4px', borderTopLeftRadius: item.blocked > 0 ? '0' : '0.25rem', borderTopRightRadius: item.blocked > 0 ? '0' : '0.25rem' }}
+                        />
                       </div>
-                    </button>
+                      <div className="text-xs text-muted-foreground font-medium">{item.time}</div>
+                    </div>
                   );
-                })
+                })}
+              </div>
+              <div className="flex justify-center gap-4 mt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-600 rounded-sm" />
+                  <span className="text-xs text-muted-foreground">Safe</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-destructive rounded-sm" />
+                  <span className="text-xs text-muted-foreground">Blocked</span>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="mostVisited" className="mt-0 max-h-96 overflow-y-auto space-y-2">
+              {topAllowedDomains.map((domain, i) => {
+                const { display, original } = extractSiteName({ root: domain.root, domain: domain.domain });
+                return (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm truncate">{display}</p>
+                        {domain.tracker && <Badge variant="outline" className="text-xs">Tracker</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{original}</p>
+                    </div>
+                    <div className="text-lg font-bold text-primary ml-3">{domain.queries}</div>
+                  </div>
+                );
+              })}
+            </TabsContent>
+
+            <TabsContent value="blocked" className="mt-0 max-h-96 overflow-y-auto space-y-2">
+              {blockReasons.length > 0 ? (
+                blockReasons.map((item, i) => (
+                  <div
+                    key={i}
+                    className="p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border-l-4 border-destructive"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🚫</span>
+                        <div>
+                          <p className="font-semibold text-sm">{item.reason}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {item.domains.length} {item.domains.length === 1 ? 'site' : 'sites'} · {item.count} {item.count === 1 ? 'attempt' : 'attempts'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSelectedBlockReason(item)}
+                        className="text-xs"
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                    
+                    {/* Show first 3 blocked domains directly */}
+                    <div className="ml-7 mt-2 space-y-1">
+                      {item.domains.slice(0, 3).map((domain, idx) => {
+                        const { display } = extractSiteName({ domain });
+                        return (
+                          <div key={idx} className="text-xs text-muted-foreground">
+                            • {display}
+                          </div>
+                        );
+                      })}
+                      {item.domains.length > 3 && (
+                        <button
+                          onClick={() => setSelectedBlockReason(item)}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          +{item.domains.length - 3} more sites
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
               ) : (
-                <div className="text-center py-8 space-y-2">
-                  <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-                  <p className="text-sm text-muted-foreground">
-                    No threats blocked - {currentProfile.display_name}'s activity was completely safe
-                  </p>
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No sites blocked</p>
                 </div>
               )}
-            </div>
+            </TabsContent>
           </CardContent>
-        </Card>
-      </div>
+        </Tabs>
+      </Card>
 
-      {/* Block Details Dialog */}
-      <Dialog open={!!selectedBlockReason} onOpenChange={() => setSelectedBlockReason(null)}>
-        
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-destructive" />
-                    Blocked by: {selectedBlockReason?.reason}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {selectedBlockReason?.count} {selectedBlockReason?.count === 1 ? 'attempt' : 'attempts'} blocked from {selectedBlockReason?.domains.length} {selectedBlockReason?.domains.length === 1 ? 'site' : 'sites'}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-2 mt-4">
-                  <p className="text-sm font-medium">
-                    {['OISD', 'NextDNS Ads & Trackers Blocklist', 'Ads & Trackers'].some(tracker => 
-                      selectedBlockReason?.reason.toLowerCase().includes(tracker.toLowerCase())
-                    ) 
-                      ? `Trackers and ads blocked automatically:`
-                      : `Sites ${currentProfile.display_name} tried to access:`
-                    }
-                  </p>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {selectedBlockReason?.domains.map((domain, idx) => {
-                      const { display, original } = extractSiteName({ domain: domain });
-                      return (
-                        <div key={idx} className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                          <p className="font-medium">{display}</p>
-                          <p className="text-xs text-muted-foreground truncate">{original}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-                  <p className="text-sm">
-                    <strong>Why was this blocked?</strong> {
-                      ['OISD', 'NextDNS Ads & Trackers Blocklist', 'Ads & Trackers'].some(tracker => 
-                        selectedBlockReason?.reason.toLowerCase().includes(tracker.toLowerCase())
-                      )
-                        ? `These trackers and ads from were automatically blocked by our "${selectedBlockReason?.reason}" protection rule to keep ${currentProfile.display_name} safe from tracking and unwanted content.`
-                        : `These sites matched your protection rules for "${selectedBlockReason?.reason}". You can adjust ${currentProfile.display_name}'s settings in the Security or Parental Controls sections.`
-                    }
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-      {/* Connected Devices */}
+      {/* CONNECTED DEVICES */}
       <Card>
         <CardHeader>
-          <CardTitle>{currentProfile.display_name}'s Connected Devices</CardTitle>
+          <CardTitle className="text-base">Connected Devices</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {devices.length > 0 ? (
-              devices.map((device, index) => (
-                <div key={index} className="flex items-center gap-4 p-4 rounded-lg bg-muted/30">
-                  <Laptop className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+          {devices.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {devices.map((device, i) => (
+                <div key={i} className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-border">
+                  <Laptop className="h-8 w-8 text-primary flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">{device.name}</p>
-                      <span className="h-2 w-2 rounded-full bg-green-500" />
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-semibold text-sm truncate">{device.name}</p>
+                      <span className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0" title="Active" />
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">{device.model}</p>
-                    <p className="text-xs text-muted-foreground">{device.queries.toLocaleString()} queries</p>
+                    <p className="text-xs text-muted-foreground">{device.model || 'Unknown model'}</p>
+                    <p className="text-xs text-muted-foreground font-medium mt-1">
+                      {device.queries.toLocaleString()} queries
+                    </p>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-8">
-                <p className="text-sm text-muted-foreground mb-4">No devices detected yet for {currentProfile.display_name}</p>
-                <Button onClick={() => setShowDNSSetup(true)} variant="outline" size="sm">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Setup Device Protection
-                </Button>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 bg-muted/20 rounded-lg">
+              <Laptop className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground mb-3">No devices detected yet for {currentProfile.display_name}</p>
+              <Button onClick={() => setShowDNSSetup(true)} variant="outline" size="sm">
+                <Shield className="h-4 w-4 mr-2" />
+                Setup Device Protection
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Recent Activity */}
+      {/* RECENT ACTIVITY */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{currentProfile.display_name}'s Recent Activity</CardTitle>
-            <Badge variant="outline">{totalLogs.toLocaleString()}</Badge>
+            <CardTitle className="text-base">Recent Activity</CardTitle>
+            <Badge variant="outline">{allLogs.length}</Badge>
           </div>
         </CardHeader>
         <CardContent>
-          {logsQuery.isLoading ? (
-            <div className="space-y-2">
-              {[1,2,3,4,5].map(i => <div key={i} className="h-12 bg-muted/20 animate-pulse rounded" />)}
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {paginatedLogs.length > 0 ? (
-                <>
-                  {paginatedLogs.map((log, index) => (
-                    <div key={index} className="flex items-center gap-4 p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors">
-                      <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2 items-center min-w-0">
-                        <span className="text-sm text-muted-foreground truncate">
-                          {new Date(log.timestamp).toLocaleString()}
-                        </span>
-                        <span className="font-medium truncate">{log.domain}</span>
-                        <Badge variant={log.status === "blocked" ? "destructive" : "outline"}>
-                          {formatStatus(log.status)}
-                        </Badge>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs text-muted-foreground truncate">
-                            {log.device?.name || 'Unknown'}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search sites..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+            {['today', 'yesterday', 'older'].map(day => {
+              const logs = filteredGroupedLogs[day] || [];
+              if (logs.length === 0) return null;
+              
+              const dayLabel = day === 'today' ? 'Today' : day === 'yesterday' ? 'Yesterday' : 'Older';
+              const displayedLogs = logs.slice(0, activityPage * ACTIVITIES_PER_PAGE);
+              const hasMore = logs.length > displayedLogs.length;
+              
+              return (
+                <div key={day}>
+                  <button
+                    onClick={() => toggleDay(day)}
+                    className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors mb-2"
+                  >
+                    <span className="text-sm font-semibold">
+                      📅 {dayLabel} ({logs.length} {logs.length === 1 ? 'activity' : 'activities'})
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${
+                        expandedDays.includes(day) ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+
+                  {expandedDays.includes(day) && (
+                    <div className="space-y-2 mb-3">
+                      {displayedLogs.map((log, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors"
+                        >
+                          <span className="text-sm text-muted-foreground min-w-[70px] font-mono">
+                            {new Date(log.timestamp).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
                           </span>
-                          {log.status === 'blocked' && log.reasons?.[0] && (
-                            <Badge variant="secondary" className="text-xs">
-                              {log.reasons[0].name}
-                            </Badge>
-                          )}
+                          <span className="flex-1 text-sm font-medium truncate">{log.domain}</span>
+                          <span className="text-2xl flex-shrink-0">
+                            {log.status === 'allowed' ? '✅' : '🚫'}
+                          </span>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {hasMoreLogs && (
-                    <div className="flex justify-center pt-4">
-                      <Button variant="outline" onClick={() => setLogsPage(p => p + 1)}>
-                        Load More ({totalLogs - paginatedLogs.length} remaining)
-                      </Button>
+                      ))}
+                      
+                      {hasMore && (
+                        <div className="flex justify-center pt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setActivityPage(p => p + 1)}
+                          >
+                            Load More ({logs.length - displayedLogs.length} remaining)
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
-                </>
-              ) : (
-                <div className="text-center py-8 space-y-4">
+                </div>
+              );
+            })}
+
+            {Object.values(filteredGroupedLogs).every(logs => logs.length === 0) && (
+              <div className="text-center py-8">
                 <p className="text-sm text-muted-foreground">
-                  No recent activity for {currentProfile.display_name}
+                  {searchQuery ? 'No activities match your search' : 'No recent activity'}
                 </p>
-                <Button onClick={() => setShowDNSSetup(true)} variant="outline" size="sm">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Confirm DNS Setup
-                </Button>
               </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
-      
-      {/* Dialogs */}
+
+      {/* DIALOGS */}
+      <Dialog open={!!selectedBlockReason} onOpenChange={() => setSelectedBlockReason(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-destructive" />
+              Blocked by: {selectedBlockReason?.reason}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedBlockReason?.count} {selectedBlockReason?.count === 1 ? 'attempt' : 'attempts'} blocked from{' '}
+              {selectedBlockReason?.domains.length} {selectedBlockReason?.domains.length === 1 ? 'site' : 'sites'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-4">
+            <p className="text-sm font-medium">
+              Sites {currentProfile.display_name} tried to access:
+            </p>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {selectedBlockReason?.domains.map((domain, idx) => {
+                const { display, original } = extractSiteName({ domain });
+                return (
+                  <div key={idx} className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <p className="font-medium text-sm">{display}</p>
+                    <p className="text-xs text-muted-foreground truncate">{original}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+            <p className="text-sm">
+              <strong>Why was this blocked?</strong> These sites matched your protection rules for{' '}
+              "{selectedBlockReason?.reason}". You can adjust {currentProfile.display_name}'s settings in the Security
+              or Parental Controls sections.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <DNSSetupDialog
         open={showDNSSetup}
         onOpenChange={setShowDNSSetup}

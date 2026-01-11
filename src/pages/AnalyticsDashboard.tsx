@@ -61,7 +61,6 @@ const ParentAnalyticsDashboard = () => {
   const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [isExporting, setIsExporting] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
-  const [selectedBlockReason, setSelectedBlockReason] = useState<BlockReason | null>(null);
   const [showDNSSetup, setShowDNSSetup] = useState(false);
   const [activeTab, setActiveTab] = useState("screenTime");
   const [expandedDays, setExpandedDays] = useState<string[]>(["today"]);
@@ -307,7 +306,7 @@ const ParentAnalyticsDashboard = () => {
           <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
         </div>
 
-        <Card className="border-2 border-dashed">
+        <Card className="border-0 bg-muted/20">
           <CardContent className="flex flex-col items-center justify-center py-16 space-y-6">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
               <Activity className="h-8 w-8 text-muted-foreground" />
@@ -343,7 +342,7 @@ const ParentAnalyticsDashboard = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6 max-w-[1400px] mx-auto w-full overflow-x-hidden px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 pb-20 lg:pb-6 max-w-[1400px] mx-auto w-full overflow-x-hidden px-4 sm:px-6 lg:px-8">
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
@@ -399,8 +398,8 @@ const ParentAnalyticsDashboard = () => {
       </div>
 
       {/* HERO SECTION - DONUT CHART + HIGHLIGHTS */}
-      <Card className="overflow-hidden">
-        <CardContent className="p-6">
+      <Card className="overflow-hidden !border-0">
+        <CardContent className="p-8">
           <div className="flex flex-col items-center text-center mb-6">
             {/* RECHARTS DONUT CHART */}
             <DonutChart 
@@ -411,15 +410,15 @@ const ParentAnalyticsDashboard = () => {
             />
 
             <div className={`text-lg font-semibold mb-1 ${metrics.blocked === 0 ? 'text-green-600' : 'text-primary'}`}>
-              {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked`}
+              {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked today`}
             </div>
             <div className="text-sm text-muted-foreground">
-              {metrics.total.toLocaleString()} total · {metrics.blocked} blocked
+              {(metrics.total - metrics.blocked).toLocaleString()} safe · {metrics.blocked} blocked
             </div>
           </div>
 
           {/* QUICK HIGHLIGHTS */}
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-2 gap-6 pt-6 border-t border-muted/50">
             <div className="text-center">
               <div className="text-xs text-muted-foreground mb-1">Peak Activity</div>
               <div className="text-base font-semibold">{highlights.peakHour?.time || 'N/A'}</div>
@@ -435,26 +434,24 @@ const ParentAnalyticsDashboard = () => {
       </Card>
 
       {/* KEY METRICS CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
         {[
           { icon: Activity, value: metrics.total, label: 'Total Requests', color: 'text-muted-foreground' },
           { icon: Laptop, value: devices.length, label: 'Connected Devices', color: 'text-muted-foreground' },
           { icon: Eye, value: trackerCount, label: 'Tracking Companies', color: 'text-muted-foreground' },
           { icon: Shield, value: blockReasons.length > 0 ? blockReasons[0].count : 0, label: blockReasons.length > 0 ? blockReasons[0].reason.substring(0, 15) + '...' : 'No Blocks', color: 'text-muted-foreground' }
         ].map((item, i) => (
-          <Card key={i} className="border">
-            <CardContent className="p-4">
-              <item.icon className={`h-5 w-5 ${item.color} mb-2`} />
-              <div className="text-2xl font-bold">{item.value}</div>
-              <div className="text-xs text-muted-foreground font-medium truncate">{item.label}</div>
-            </CardContent>
-          </Card>
+          <div key={i} className="rounded-lg bg-card p-5">
+            <item.icon className={`h-5 w-5 ${item.color} mb-2`} />
+            <div className="text-2xl font-bold">{item.value}</div>
+            <div className="text-xs text-muted-foreground font-medium truncate">{item.label}</div>
+          </div>
         ))}
       </div>
 
       {/* TRACKER ALERT */}
       {trackerCount > 0 && (
-        <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200">
+        <Alert className="bg-amber-50 dark:bg-amber-950/20 border-0">
           <AlertCircle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex-1">
@@ -484,13 +481,18 @@ const ParentAnalyticsDashboard = () => {
               Blocked
               {blockReasons.length > 0 && (
                 <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
-                  {blockReasons.length}
+                  {blockReasons.reduce((sum, reason) => sum + reason.domains.length, 0)}
                 </Badge>
               )}
             </TabsTrigger>
           </TabsList>
 
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 px-6">
+            {activeTab === "blocked" && blockReasons.length > 0 && (
+              <div className="mb-4 text-xs text-muted-foreground">
+                Showing blocks from: Your Blocklist settings, Ad blockers, and Security filters
+              </div>
+            )}
             <TabsContent value="screenTime" className="mt-0">
               <h3 className="text-sm font-semibold mb-4">Activity Over Time</h3>
               <div className="h-56 flex items-end gap-1.5">
@@ -519,7 +521,7 @@ const ParentAnalyticsDashboard = () => {
                   );
                 })}
               </div>
-              <div className="flex justify-center gap-4 mt-4">
+              <div className="flex justify-center gap-6 mt-6">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-600 rounded-sm" />
                   <span className="text-xs text-muted-foreground">Safe</span>
@@ -531,11 +533,11 @@ const ParentAnalyticsDashboard = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="mostVisited" className="mt-0 max-h-96 overflow-y-auto space-y-2">
+            <TabsContent value="mostVisited" className="mt-0 max-h-96 overflow-y-auto space-y-1">
               {topAllowedDomains.map((domain, i) => {
                 const { display, original } = extractSiteName({ root: domain.root, domain: domain.domain });
                 return (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/20 transition-colors border-b last:border-b-0 border-muted">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-sm truncate">{display}</p>
@@ -549,54 +551,43 @@ const ParentAnalyticsDashboard = () => {
               })}
             </TabsContent>
 
-            <TabsContent value="blocked" className="mt-0 max-h-96 overflow-y-auto space-y-2">
+            <TabsContent value="blocked" className="mt-0 max-h-96 overflow-y-auto space-y-3">
               {blockReasons.length > 0 ? (
-                blockReasons.map((item, i) => (
-                  <div
-                    key={i}
-                    className="p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border-l-4 border-destructive"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">🚫</span>
-                        <div>
-                          <p className="font-semibold text-sm">{item.reason}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {item.domains.length} {item.domains.length === 1 ? 'site' : 'sites'} · {item.count} {item.count === 1 ? 'attempt' : 'attempts'}
-                          </p>
+                blockReasons.flatMap((item) => 
+                  item.domains.map((domain, idx) => {
+                    const isDenylist = item.reason.toLowerCase().includes('denylist') || 
+                                     item.reason.toLowerCase().includes('blocked by you') ||
+                                     item.reason.toLowerCase().includes('parental');
+                    const isAdBlock = item.reason.toLowerCase().includes('ad') || 
+                                     item.reason.toLowerCase().includes('tracker');
+                    
+                    const borderColor = isDenylist ? 'border-l-[4px] border-red-500' : 
+                                      isAdBlock ? 'border-l-[4px] border-orange-500' : 
+                                      'border-l-[4px] border-blue-500';
+                    const bgColor = isDenylist ? 'bg-red-50/30 dark:bg-red-950/5' : 
+                                  isAdBlock ? 'bg-orange-50/30 dark:bg-orange-950/5' : 
+                                  'bg-blue-50/30 dark:bg-blue-950/5';
+                    
+                    const { display, original } = extractSiteName({ domain });
+                    
+                    return (
+                      <div key={`${item.reason}-${idx}`} className={`rounded-lg ${bgColor} overflow-hidden`}>
+                        <div className="px-4 py-3">
+                          <div className="flex items-start gap-2.5">
+                            <span className="text-base mt-0.5 flex-shrink-0">🚫</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold truncate">{display}</p>
+                              <p className="text-xs text-muted-foreground truncate mt-0.5">{original}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {item.reason} · {item.count} {item.count === 1 ? 'attempt' : 'attempts'}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setSelectedBlockReason(item)}
-                        className="text-xs"
-                      >
-                        View Details
-                      </Button>
-                    </div>
-                    
-                    {/* Show first 3 blocked domains directly */}
-                    <div className="ml-7 mt-2 space-y-1">
-                      {item.domains.slice(0, 3).map((domain, idx) => {
-                        const { display } = extractSiteName({ domain });
-                        return (
-                          <div key={idx} className="text-xs text-muted-foreground">
-                            • {display}
-                          </div>
-                        );
-                      })}
-                      {item.domains.length > 3 && (
-                        <button
-                          onClick={() => setSelectedBlockReason(item)}
-                          className="text-xs text-primary hover:underline"
-                        >
-                          +{item.domains.length - 3} more sites
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
+                    );
+                  })
+                )
               ) : (
                 <div className="text-center py-8">
                   <p className="text-sm text-muted-foreground">No sites blocked</p>
@@ -616,7 +607,7 @@ const ParentAnalyticsDashboard = () => {
           {devices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {devices.map((device, i) => (
-                <div key={i} className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-border">
+                <div key={i} className="flex items-center gap-3 p-4 rounded-lg bg-muted/20">
                   <Laptop className="h-8 w-8 text-primary flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -632,7 +623,7 @@ const ParentAnalyticsDashboard = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 bg-muted/20 rounded-lg">
+            <div className="text-center py-8">
               <Laptop className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
               <p className="text-sm text-muted-foreground mb-3">No devices detected yet for {currentProfile.display_name}</p>
               <Button onClick={() => setShowDNSSetup(true)} variant="outline" size="sm">
@@ -653,7 +644,7 @@ const ParentAnalyticsDashboard = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="relative mb-4">
+          <div className="relative mb-6">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
@@ -672,7 +663,7 @@ const ParentAnalyticsDashboard = () => {
             )}
           </div>
 
-          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+          <div className="space-y-4 max-h-[600px] overflow-y-auto">
             {['today', 'yesterday', 'older'].map(day => {
               const logs = filteredGroupedLogs[day] || [];
               if (logs.length === 0) return null;
@@ -685,7 +676,7 @@ const ParentAnalyticsDashboard = () => {
                 <div key={day}>
                   <button
                     onClick={() => toggleDay(day)}
-                    className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors mb-2"
+                    className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors mb-2"
                   >
                     <span className="text-sm font-semibold">
                       📅 {dayLabel} ({logs.length} {logs.length === 1 ? 'activity' : 'activities'})
@@ -702,7 +693,7 @@ const ParentAnalyticsDashboard = () => {
                       {displayedLogs.map((log, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors"
+                          className="flex items-center gap-3 p-3 hover:bg-muted/20 transition-colors border-b last:border-b-0 border-muted/50"
                         >
                           <span className="text-sm text-muted-foreground min-w-[70px] font-mono">
                             {new Date(log.timestamp).toLocaleTimeString('en-US', {
@@ -719,7 +710,7 @@ const ParentAnalyticsDashboard = () => {
                       ))}
                       
                       {hasMore && (
-                        <div className="flex justify-center pt-2">
+                        <div className="flex justify-center pt-3">
                           <Button
                             size="sm"
                             variant="outline"
@@ -745,46 +736,7 @@ const ParentAnalyticsDashboard = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* DIALOGS */}
-      <Dialog open={!!selectedBlockReason} onOpenChange={() => setSelectedBlockReason(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-destructive" />
-              Blocked by: {selectedBlockReason?.reason}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedBlockReason?.count} {selectedBlockReason?.count === 1 ? 'attempt' : 'attempts'} blocked from{' '}
-              {selectedBlockReason?.domains.length} {selectedBlockReason?.domains.length === 1 ? 'site' : 'sites'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 mt-4">
-            <p className="text-sm font-medium">
-              Sites {currentProfile.display_name} tried to access:
-            </p>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {selectedBlockReason?.domains.map((domain, idx) => {
-                const { display, original } = extractSiteName({ domain });
-                return (
-                  <div key={idx} className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <p className="font-medium text-sm">{display}</p>
-                    <p className="text-xs text-muted-foreground truncate">{original}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-            <p className="text-sm">
-              <strong>Why was this blocked?</strong> These sites matched your protection rules for{' '}
-              "{selectedBlockReason?.reason}". You can adjust {currentProfile.display_name}'s settings in the Security
-              or Parental Controls sections.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-
+      
       <DNSSetupDialog
         open={showDNSSetup}
         onOpenChange={setShowDNSSetup}

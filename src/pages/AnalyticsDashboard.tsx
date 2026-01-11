@@ -56,6 +56,7 @@ const ParentAnalyticsDashboard = () => {
   const { subscriptionTier } = useSubscription();
   const { toast } = useToast();
 
+  // ALL STATE HOOKS FIRST - BEFORE ANY CONDITIONALS
   const [timeRange, setTimeRange] = useState("7d");
   const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [isExporting, setIsExporting] = useState(false);
@@ -71,6 +72,7 @@ const ParentAnalyticsDashboard = () => {
   const profileIdStr = currentProfile?.id.toString();
   const logsLimit = getLogsLimit(timeRange);
 
+  // ALL QUERY HOOKS - THESE MUST ALWAYS RUN
   const overviewQuery = useAnalyticsOverview(profileIdStr, timeRange);
   const domainsQuery = useTopDomains(profileIdStr, timeRange, 50);
   const timelineQuery = useTimelineData(profileIdStr, timeRange);
@@ -98,6 +100,7 @@ const ParentAnalyticsDashboard = () => {
     (logsQuery.isError && !logsQuery.data) ||
     (trackersQuery.isError && !trackersQuery.data);
 
+  // ALL useEffect HOOKS
   useEffect(() => {
     if (hasErrors && timeRange === '1d') {
       toast({
@@ -115,19 +118,7 @@ const ParentAnalyticsDashboard = () => {
     }
   }, [hasErrors, timeRange, overviewQuery.data, toast]);
 
-  const refresh = () => {
-    overviewQuery.refetch();
-    domainsQuery.refetch();
-    timelineQuery.refetch();
-    logsQuery.refetch();
-    trackersQuery.refetch();
-
-    toast({
-      title: 'Refreshed',
-      description: 'Analytics data updated',
-    });
-  };
-
+  // ALL useMemo HOOKS
   const metrics = useMemo(() => calculateMetrics(overviewQuery.data), [overviewQuery.data]);
 
   const blockReasons = useMemo(
@@ -149,6 +140,61 @@ const ParentAnalyticsDashboard = () => {
     ),
     [timelineQuery.data, blockReasons, trackersQuery.data?.allowed_trackers, currentProfile?.display_name]
   );
+
+  const devices = overviewQuery.data?.devices || [];
+  const topAllowedDomains = (domainsQuery.data || []).slice(0, 15);
+  const allowedTrackers = trackersQuery.data?.allowed_trackers || [];
+  const trackerCount = trackersQuery.data?.summary.allowed_count || 0;
+  const allLogs = logsQuery.data?.data || [];
+  
+  // Group logs by date for Recent Activity
+  const groupedLogs = useMemo(() => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const grouped: Record<string, typeof allLogs> = {
+      today: [],
+      yesterday: [],
+      older: []
+    };
+    
+    allLogs.forEach(log => {
+      const logDate = new Date(log.timestamp);
+      if (logDate.toDateString() === today.toDateString()) {
+        grouped.today.push(log);
+      } else if (logDate.toDateString() === yesterday.toDateString()) {
+        grouped.yesterday.push(log);
+      } else {
+        grouped.older.push(log);
+      }
+    });
+    
+    return grouped;
+  }, [allLogs]);
+
+  // Filter logs by search query
+  const filteredGroupedLogs = useMemo(() => {
+    if (!searchQuery) return groupedLogs;
+    
+    const filtered: Record<string, typeof allLogs> = {};
+    Object.keys(groupedLogs).forEach(key => {
+      filtered[key] = groupedLogs[key].filter(log =>
+        log.domain.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+    
+    return filtered;
+  }, [groupedLogs, searchQuery]);
+
+  // Calculate max value for timeline chart
+  const maxTimelineValue = Math.max(...chartData.map(d => d.allowed + d.blocked), 1);
+
+  // ALL CALLBACK FUNCTIONS
+  const refresh = () => {
+    [overviewQuery, domainsQuery, timelineQuery, logsQuery, trackersQuery].forEach(q => q.refetch());
+    toast({ title: 'Refreshed', description: 'Analytics data updated' });
+  };
 
   const isTimeRangeAvailable = (range: string): boolean => {
     if (!subscriptionTier) return range === "1d";
@@ -228,6 +274,7 @@ const ParentAnalyticsDashboard = () => {
     );
   };
 
+  // NOW CONDITIONAL RETURNS ARE SAFE - ALL HOOKS HAVE BEEN CALLED
   if (!currentProfile) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -295,57 +342,8 @@ const ParentAnalyticsDashboard = () => {
     );
   }
 
-  const devices = overviewQuery.data?.devices || [];
-  const topAllowedDomains = (domainsQuery.data || []).slice(0, 15);
-  const allowedTrackers = trackersQuery.data?.allowed_trackers || [];
-  const trackerCount = trackersQuery.data?.summary.allowed_count || 0;
-  const allLogs = logsQuery.data?.data || [];
-  
-  // Group logs by date for Recent Activity
-  const groupedLogs = useMemo(() => {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    const grouped: Record<string, typeof allLogs> = {
-      today: [],
-      yesterday: [],
-      older: []
-    };
-    
-    allLogs.forEach(log => {
-      const logDate = new Date(log.timestamp);
-      if (logDate.toDateString() === today.toDateString()) {
-        grouped.today.push(log);
-      } else if (logDate.toDateString() === yesterday.toDateString()) {
-        grouped.yesterday.push(log);
-      } else {
-        grouped.older.push(log);
-      }
-    });
-    
-    return grouped;
-  }, [allLogs]);
-
-  // Filter logs by search query
-  const filteredGroupedLogs = useMemo(() => {
-    if (!searchQuery) return groupedLogs;
-    
-    const filtered: Record<string, typeof allLogs> = {};
-    Object.keys(groupedLogs).forEach(key => {
-      filtered[key] = groupedLogs[key].filter(log =>
-        log.domain.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    });
-    
-    return filtered;
-  }, [groupedLogs, searchQuery]);
-
-  // Calculate max value for timeline chart
-  const maxTimelineValue = Math.max(...chartData.map(d => d.allowed + d.blocked), 1);
-
   return (
-    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6 max-w-[1400px] mx-auto">
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6 max-w-[1400px] mx-auto w-full overflow-x-hidden px-4 sm:px-6 lg:px-8">
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
@@ -413,7 +411,7 @@ const ParentAnalyticsDashboard = () => {
             />
 
             <div className={`text-lg font-semibold mb-1 ${metrics.blocked === 0 ? 'text-green-600' : 'text-primary'}`}>
-              {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked today`}
+              {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked`}
             </div>
             <div className="text-sm text-muted-foreground">
               {metrics.total.toLocaleString()} total · {metrics.blocked} blocked
@@ -437,7 +435,7 @@ const ParentAnalyticsDashboard = () => {
       </Card>
 
       {/* KEY METRICS CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
         {[
           { icon: Activity, value: metrics.total, label: 'Total Requests', color: 'text-muted-foreground' },
           { icon: Laptop, value: devices.length, label: 'Connected Devices', color: 'text-muted-foreground' },

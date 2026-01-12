@@ -166,7 +166,11 @@ export function groupBlockReasons(logs: LogEntry[]): BlockReason[] {
 }
 
 /**
- * Format timeline data for recharts with proper time labels based on range
+ * Format timeline data for charts with proper aggregation
+ * - 1d: 24 hourly bars
+ * - 7d: 7 daily bars (aggregates 24 hours per day)
+ * - 30d: 30 daily bars
+ * - 90d: 90 daily bars
  */
 export function formatTimeline(timeline: TimelineData[], timeRange: string = '1d'): Array<{
   time: string;
@@ -181,54 +185,64 @@ export function formatTimeline(timeline: TimelineData[], timeRange: string = '1d
   const allowedQueries = allowedData?.queries || [];
   const blockedQueries = blockedData?.queries || [];
 
-  const maxLength = Math.max(allowedQueries.length, blockedQueries.length);
+  if (allowedQueries.length === 0 && blockedQueries.length === 0) return [];
 
-  if (maxLength === 0) return [];
-
-  // Format time labels based on range
-  const formatTimeLabel = (index: number, range: string): string => {
-    if (range === '1d') {
-      // 24h: Show hours in 12-hour format - "12AM, 3AM, 6AM, 9AM, 12PM, 3PM, 6PM, 9PM"
-      const hour = index;
+  // For 1d: show all 24 hours
+  if (timeRange === '1d') {
+    return Array.from({ length: 24 }, (_, hour) => {
       const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
       const period = hour >= 12 ? 'PM' : 'AM';
-      return `${hour12}${period}`;
-    } else if (range === '7d') {
-      // 7d: Show day names - "Mon, Tue, Wed, Thu, Fri, Sat, Sun"
-      const dayIndex = Math.floor(index / 24);
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const today = new Date();
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() - (6 - dayIndex));
-      return days[targetDate.getDay()];
-    } else if (range === '30d') {
-      // 30d: Show dates - "Nov 1, Nov 8, Nov 15, Nov 22"
-      const dayIndex = Math.floor(index / 24);
-      const today = new Date();
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() - (29 - dayIndex));
-      const month = targetDate.toLocaleString('default', { month: 'short' });
-      return `${month} ${targetDate.getDate()}`;
-    } else if (range === '90d') {
-      // 90d: Show dates - "Aug 15, Sep 1, Sep 15, Oct 1, Nov 1"
-      const dayIndex = Math.floor(index / 24);
-      const today = new Date();
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() - (89 - dayIndex));
-      const month = targetDate.toLocaleString('default', { month: 'short' });
-      return `${month} ${targetDate.getDate()}`;
+      return {
+        time: `${hour12}${period}`,
+        allowed: allowedQueries[hour] || 0,
+        blocked: blockedQueries[hour] || 0
+      };
+    });
+  }
+
+  // For 7d, 30d, 90d: aggregate hours into days
+  const daysCount = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+  const hoursPerDay = 24;
+  
+  const aggregated: Array<{ time: string; allowed: number; blocked: number }> = [];
+  
+  for (let day = 0; day < daysCount; day++) {
+    const startIdx = day * hoursPerDay;
+    const endIdx = startIdx + hoursPerDay;
+    
+    // Sum up all hours in this day
+    let dayAllowed = 0;
+    let dayBlocked = 0;
+    
+    for (let i = startIdx; i < endIdx && i < allowedQueries.length; i++) {
+      dayAllowed += allowedQueries[i] || 0;
+      dayBlocked += blockedQueries[i] || 0;
     }
-    return `${index}h`;
-  };
-
-  // Sample data points to avoid overcrowding the x-axis
-  const sampleInterval = timeRange === '1d' ? 3 : timeRange === '7d' ? 24 : timeRange === '30d' ? 168 : 360;
-
-  return Array.from({ length: maxLength }, (_, index) => ({
-    time: index % sampleInterval === 0 ? formatTimeLabel(index, timeRange) : '',
-    allowed: allowedQueries[index] || 0,
-    blocked: blockedQueries[index] || 0
-  }));
+    
+    // Calculate the actual date for this day
+    const today = new Date();
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() - (daysCount - 1 - day));
+    
+    let timeLabel = '';
+    if (timeRange === '7d') {
+      // Show day names: Mon, Tue, Wed, etc.
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      timeLabel = days[targetDate.getDay()];
+    } else {
+      // Show dates: Nov 1, Nov 8, etc.
+      const month = targetDate.toLocaleString('default', { month: 'short' });
+      timeLabel = `${month} ${targetDate.getDate()}`;
+    }
+    
+    aggregated.push({
+      time: timeLabel,
+      allowed: dayAllowed,
+      blocked: dayBlocked
+    });
+  }
+  
+  return aggregated;
 }
 
 /**

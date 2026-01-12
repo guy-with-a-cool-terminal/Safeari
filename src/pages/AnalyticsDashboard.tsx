@@ -410,7 +410,7 @@ const ParentAnalyticsDashboard = () => {
             />
 
             <div className={`text-lg font-semibold mb-1 ${metrics.blocked === 0 ? 'text-green-600' : 'text-primary'}`}>
-              {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked today`}
+              {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked`}
             </div>
             <div className="text-sm text-muted-foreground">
               {(metrics.total - metrics.blocked).toLocaleString()} safe · {metrics.blocked} blocked

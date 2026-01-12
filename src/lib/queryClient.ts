@@ -65,7 +65,7 @@ export const queryClient = new QueryClient({
  */
 const localStoragePersister = createSyncStoragePersister({
   storage: window.localStorage,
-  key: 'JUSTATOOL_QUERY_CACHE',
+  key: 'SAFEARI_QUERY_CACHE',
 });
 
 /**

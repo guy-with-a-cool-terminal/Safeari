@@ -366,9 +366,6 @@ const CustomLists = () => {
                   Add Domain
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Domains in the allowlist will never be blocked, even if matched by other filters
-              </p>
             </div>
 
             {allowlist.length > 0 && (
@@ -442,9 +439,6 @@ const CustomLists = () => {
                   Block Domain
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Domains in the denylist will always be blocked
-              </p>
             </div>
 
             {denylist.length > 0 && (

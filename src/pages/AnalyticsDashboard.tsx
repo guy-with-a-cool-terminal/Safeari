@@ -494,44 +494,85 @@ const ParentAnalyticsDashboard = () => {
               </div>
             )}
             <TabsContent value="screenTime" className="mt-0">
-              <h3 className="text-sm font-semibold mb-4">Activity Over Time</h3>
-              <div className="h-56 flex items-end gap-1.5">
-                {chartData.map((item, i) => {
-                  const allowedHeight = ((item.allowed / maxTimelineValue) * 100);
-                  const blockedHeight = ((item.blocked / maxTimelineValue) * 100);
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center">
-                      <div className="w-full flex flex-col items-center mb-1">
-                        <div className="text-xs font-semibold mb-1 h-4">
-                          {item.allowed + item.blocked}
-                        </div>
-                        {item.blocked > 0 && (
-                          <div
-                            className="w-full bg-destructive rounded-t transition-all"
-                            style={{ height: `${blockedHeight}%`, minHeight: item.blocked > 0 ? '4px' : '0' }}
-                          />
-                        )}
-                        <div
-                          className="w-full bg-green-600 transition-all"
-                          style={{ height: `${allowedHeight}%`, minHeight: '4px', borderTopLeftRadius: item.blocked > 0 ? '0' : '0.25rem', borderTopRightRadius: item.blocked > 0 ? '0' : '0.25rem' }}
-                        />
-                      </div>
-                      <div className="text-xs text-muted-foreground font-medium">{item.time}</div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex justify-center gap-6 mt-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-600 rounded-sm" />
-                  <span className="text-xs text-muted-foreground">Safe</span>
+              {/* Big Summary */}
+              <div className="text-center mb-8">
+                <div className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  {metrics.total.toLocaleString()}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-destructive rounded-sm" />
-                  <span className="text-xs text-muted-foreground">Blocked</span>
+                <div className="text-sm text-muted-foreground font-medium">
+                  {(() => {
+                    // Find peak activity
+                    const sortedData = [...chartData].sort((a, b) => (b.allowed + b.blocked) - (a.allowed + a.blocked));
+                    const topActivity = sortedData.slice(0, 2).filter(d => (d.allowed + d.blocked) > 0);
+                    
+                    if (topActivity.length === 0) {
+                      return timeRange === '1d' ? 'No activity today' : 'No activity this period';
+                    }
+                    
+                    if (timeRange === '1d') {
+                      // For 24h: show peak hours
+                      const peakHours = topActivity.map(d => d.time).join(' & ');
+                      return `Most active ${peakHours}`;
+                    } else {
+                      // For 7d/30d/90d: show peak days
+                      const peakDays = topActivity.map(d => d.time).join(' & ');
+                      return `Most active ${peakDays}`;
+                    }
+                  })()}
                 </div>
               </div>
-            </TabsContent>
+
+              {/* Timeline Chart */}
+              <div className="h-72 flex items-end gap-2 overflow-x-auto pb-2">
+{chartData.map((item, i) => {
+const total = item.allowed + item.blocked;
+const allowedHeight = ((item.allowed / maxTimelineValue) * 100);
+const blockedHeight = ((item.blocked / maxTimelineValue) * 100);
+const totalHeight = allowedHeight + blockedHeight;
+
+return (
+<div key={i} className="flex-1 flex flex-col items-center min-w-[32px] max-w-[48px]">
+<div className="w-full flex flex-col items-center mb-2 relative h-full">
+{/* Single bar with smooth gradient */}
+<div 
+className="w-full relative group rounded-t-lg overflow-hidden transition-all duration-300 shadow-sm"
+style={{ 
+height: `${Math.max(totalHeight, 5)}%`,
+minHeight: total > 0 ? '24px' : '8px',
+background: item.blocked > 0 
+? `linear-gradient(to top, 
+   rgb(52, 211, 153) 0%, 
+   rgb(16, 185, 129) ${Math.max((item.allowed / total * 100) - 3, 0)}%, 
+   rgb(239, 68, 68) ${Math.min((item.allowed / total * 100) + 3, 100)}%, 
+   rgb(244, 63, 94) 100%)`
+: `linear-gradient(to top, rgb(52, 211, 153), rgb(16, 185, 129), rgb(5, 150, 105))`,
+}}
+>
+{/* Glossy shine overlay */}
+<div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent pointer-events-none" />
+{/* Hover glow */}
+<div className="absolute inset-0 bg-white/0 group-hover:bg-white/15 transition-all duration-200 pointer-events-none" />
+</div>
+</div>
+{/* Day/Hour labels */}
+<div className="text-xs text-muted-foreground font-medium">{item.time}</div>
+</div>
+);
+})}
+</div>
+
+{/* Compact Legend */}
+<div className="flex justify-center gap-4 mt-4 text-xs text-muted-foreground">
+<div className="flex items-center gap-1.5">
+<div className="w-2.5 h-2.5 bg-green-500 rounded-sm" />
+<span>Safe</span>
+</div>
+<div className="flex items-center gap-1.5">
+<div className="w-2.5 h-2.5 bg-rose-600 rounded-sm" />
+<span>Blocked</span>
+</div>
+</div>
+</TabsContent>
 
             <TabsContent value="mostVisited" className="mt-0 max-h-96 overflow-y-auto space-y-1">
               {topAllowedDomains.map((domain, i) => {

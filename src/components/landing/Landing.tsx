@@ -305,7 +305,7 @@ const Landing = () => {
           <div className="flex justify-center items-center mb-4">
             <img src={SafeariLogo} alt="Safeari - Parental Control and Internet Safety" className="h-7 md:h-8 w-auto" />
           </div>
-          <p className="text-xs md:text-sm">© 2025 Safeari. All rights reserved.</p>
+          <p className="text-xs md:text-sm">© {new Date().getFullYear()} Safeari. All rights reserved.</p>
           <p className="text-xs text-muted-foreground/70">
             A product by{" "}
             <a
@@ -314,13 +314,13 @@ const Landing = () => {
               rel="noopener noreferrer"
               className="text-primary hover:text-primary/80 hover:underline transition-colors duration-200 font-medium"
             >
-              CNB Code
+              CnB Code
             </a>
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 pt-2">
             <Link to="/privacy" className="hover:text-foreground hover:scale-105 transition-all duration-200 text-xs md:text-sm">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-foreground hover:scale-105 transition-all duration-200 text-xs md:text-sm">Terms of Service</Link>
-            <a href="mailto:support@safeari.com" className="hover:text-foreground hover:scale-105 transition-all duration-200 text-xs md:text-sm">Contact</a>
+            <a href="mailto:support@safeari.co.ke" className="hover:text-foreground hover:scale-105 transition-all duration-200 text-xs md:text-sm">Contact</a>
           </div>
         </div>
       </footer>

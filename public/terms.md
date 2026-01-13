@@ -157,7 +157,7 @@ Safeari is intended for use globally. However:
 
 **Governing Law**: These terms are governed by the laws of the United States, without regard to conflict of law principles. This is because the underlying services and infrastructure used by Safeari are based in the United States.
 
-**Informal Resolution**: Before filing a claim, please contact us at support@safeari.com to attempt to resolve the issue informally.
+**Informal Resolution**: Before filing a claim, please contact us at support@safeari.co.ke to attempt to resolve the issue informally.
 
 **Arbitration**: Any disputes that cannot be resolved informally shall be resolved through binding arbitration in accordance with the American Arbitration Association's rules, rather than in court.
 
@@ -177,7 +177,7 @@ Safeari is intended for use globally. However:
 
 If you have questions about these Terms and Conditions, please contact us:
 
-- Email: support@safeari.com
+- Email: support@safeari.co.ke
 - Website: [Your website URL]
 
 ---

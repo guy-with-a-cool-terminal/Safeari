@@ -1,6 +1,5 @@
 # Privacy Policy
 
-**Last Updated: November 6, 2025**
 
 At Safeari, we take your privacy seriously. This Privacy Policy explains how we collect, use, share, and protect your information when you use our DNS-based parental control and internet filtering service.
 
@@ -196,7 +195,7 @@ You have the following rights regarding your personal information:
 
 **European Residents**: Have rights under the General Data Protection Regulation (GDPR), including the right to object to processing and lodge complaints with supervisory authorities.
 
-**To Exercise Your Rights**: Contact us at privacy@safeari.com.
+**To Exercise Your Rights**: Contact us at privacy@safeari.co.ke.
 
 ## 8. Children's Privacy
 
@@ -260,8 +259,8 @@ By using Safeari, you consent to:
 
 If you have questions about this Privacy Policy or how we handle your data:
 
-**Email**: privacy@safeari.com
-**Support**: support@safeari.com
+**Email**: privacy@safeari.co.ke
+**Support**: support@safeari.co.ke
 **Mailing Address**: [Your business address]
 
 For specific concerns about DNS query data, you may also contact NextDNS directly through their support channels.

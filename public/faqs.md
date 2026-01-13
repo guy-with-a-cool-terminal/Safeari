@@ -239,7 +239,7 @@ We offer multiple subscription tiers with different features and limits. See our
 
 ### How do I get started with Safeari?
 
-1. **Sign up**: Create an account at safeari.com
+1. **Sign up**: Create an account at safeari.co.ke
 2. **Choose a subscription**: Start with Free or pick a paid plan
 3. **Create profiles**: Set up profiles for different family members
 4. **Configure devices**: Follow our setup guides to point devices to your Safeari DNS servers
@@ -261,7 +261,7 @@ If you can change Wi-Fi settings on your phone, you can set up Safeari.
 
 We offer:
 - Comprehensive documentation and setup guides
-- Email support (support@safeari.com)
+- Email support (support@safeari.co.ke)
 - FAQ and knowledge base
 - Video tutorials (coming soon)
 - Priority support for paid plans
@@ -405,7 +405,7 @@ We provide a test tool in the dashboard to verify filtering is active.
 
 ### How do I contact support?
 
-- **Email**: support@safeari.com
+- **Email**: support@safeari.co.ke
 - **Knowledge Base**: [Your documentation URL]
 - **Response time**: Typically within 24 hours (faster for paid plans)
 
@@ -421,7 +421,7 @@ Setup guides are available in your dashboard under "Setup" or "Help". We provide
 
 ### Can I request new features?
 
-Absolutely! We love user feedback. Email us at support@safeari.com with your suggestions.
+Absolutely! We love user feedback. Email us at support@safeari.co.ke with your suggestions.
 
 ### Is there a community forum?
 
@@ -431,6 +431,6 @@ We're working on building a community! For now, reach out via email or follow us
 
 ## Still Have Questions?
 
-If your question wasn't answered here, please contact us at support@safeari.com. We're here to help!
+If your question wasn't answered here, please contact us at support@safeari.co.ke We're here to help!
 
 **Remember**: Safeari is a tool to assist with parental controls, but it's not a substitute for open communication with your children about internet safety. Technology works best when combined with education and trust.

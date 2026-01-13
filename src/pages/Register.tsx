@@ -274,8 +274,8 @@ const Register = () => {
 
             <p className="text-center text-xs text-muted-foreground">
               Need help? Contact us at{" "}
-              <a href="mailto:support@safeari.com" className="underline hover:text-foreground">
-                support@safeari.com
+              <a href="mailto:support@safeari.co.ke" className="underline hover:text-foreground">
+                support@safeari.co.ke
               </a>
             </p>
           </div>

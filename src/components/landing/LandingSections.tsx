@@ -251,7 +251,7 @@ export const FAQSection = () => {
         <div className="text-center mt-10 md:mt-12 p-6 md:p-8 rounded-xl bg-primary/5 border border-primary/20">
           <p className="text-sm md:text-base text-muted-foreground mb-4">Still have questions?</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="mailto:support@safeari.com">
+            <a href="mailto:support@safeari.co.ke">
               <Button variant="outline" size="sm" className="w-full sm:w-auto">
                 Email Us
               </Button>
@@ -304,8 +304,8 @@ export const ContactSection = () => {
       icon: Mail,
       title: "Email Support",
       description: "Prefer email? We typically respond within 24 hours",
-      buttonText: "support@safeari.com",
-      buttonHref: "mailto:support@safeari.com",
+      buttonText: "support@safeari.co.ke",
+      buttonHref: "mailto:support@safeari.co.ke",
       buttonVariant: "outline" as const,
       glowColor: "from-purple-500/5"
     }

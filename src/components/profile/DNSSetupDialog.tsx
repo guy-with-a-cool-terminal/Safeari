@@ -314,7 +314,7 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
                   </a>
                 </Button>
                 <Button asChild variant="outline" size="sm" className="justify-start">
-                  <a href="mailto:support@safeari.com">
+                  <a href="mailto:support@safeari.co.ke">
                     <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
                     <span className="truncate">Email Support</span>
                   </a>
@@ -455,7 +455,7 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
                           </a>
                         </Button>
                         <Button asChild size="sm" variant="outline" className="justify-start">
-                          <a href="mailto:support@safeari.com">
+                          <a href="mailto:support@safeari.co.ke">
                             <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
                             <span className="truncate">Email</span>
                           </a>

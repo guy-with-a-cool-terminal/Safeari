@@ -6,16 +6,18 @@ export const ANALYTICS_CONFIG = {
   LOGS_PER_PAGE: 50,
   EXPORT_LIMIT: 1000,
   LOGS_LIMITS: {
+    '6h': 50,
+    '12h': 75,
     '1d': 100,
     '7d': 500,
     '30d': 500,
-    '90d': 1000,
   } as const,
   TIME_RANGES: [
-    { label: "Last 24 Hours", value: "1d", days: 1 },
+    { label: "Last 6 Hours", value: "6h", days: 0.25 },
+    { label: "Last 12 Hours", value: "12h", days: 0.5 },
+    { label: "Today", value: "1d", days: 1 },
     { label: "Last 7 Days", value: "7d", days: 7 },
     { label: "Last 30 Days", value: "30d", days: 30 },
-    { label: "Last 90 Days", value: "90d", days: 90 },
   ] as const,
 };
 
@@ -187,9 +189,10 @@ export function formatTimeline(timeline: TimelineData[], timeRange: string = '1d
 
   if (allowedQueries.length === 0 && blockedQueries.length === 0) return [];
 
-  // For 1d: show all 24 hours
-  if (timeRange === '1d') {
-    return Array.from({ length: 24 }, (_, hour) => {
+  // For 6h/12h/1d: show hourly bars
+  if (timeRange === '6h' || timeRange === '12h' || timeRange === '1d') {
+    const hours = timeRange === '6h' ? 6 : timeRange === '12h' ? 12 : 24;
+    return Array.from({ length: hours }, (_, hour) => {
       const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
       const period = hour >= 12 ? 'PM' : 'AM';
       return {

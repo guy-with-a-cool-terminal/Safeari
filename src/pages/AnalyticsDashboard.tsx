@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import {
   Lock, Shield, Activity, Laptop, Eye, RefreshCw, FileDown,
-  AlertCircle, Users, ChevronDown, Search, X
+  AlertCircle, Users, ChevronDown, Search, X, CheckCircle2, XCircle
 } from "lucide-react";
 import {
   Select,
@@ -384,7 +384,7 @@ const ParentAnalyticsDashboard = () => {
           return (
             <Button
               key={range.value}
-              variant={timeRange === range.value ? "default" : "outline"}
+              variant={timeRange === range.value ? "" : "outline"}
               size="sm"
               disabled={!available}
               onClick={() => handleTimeRangeChange(range.value)}
@@ -398,40 +398,38 @@ const ParentAnalyticsDashboard = () => {
       </div>
 
       {/* HERO SECTION - DONUT CHART + HIGHLIGHTS */}
-      <Card className="overflow-hidden !border-0">
-        <CardContent className="p-8">
-          <div className="flex flex-col items-center text-center mb-6">
-            {/* RECHARTS DONUT CHART */}
-            <DonutChart 
-              safeCount={metrics.total - metrics.blocked}
-              blockedCount={metrics.blocked}
-              size={180}
-              className="mb-4"
-            />
+      <div className="py-8 px-6 rounded-2xl bg-muted/30">
+        <div className="flex flex-col items-center text-center mb-6">
+          {/* RECHARTS DONUT CHART */}
+          <DonutChart 
+            safeCount={metrics.total - metrics.blocked}
+            blockedCount={metrics.blocked}
+            size={180}
+            className="mb-4"
+          />
 
-            <div className={`text-lg font-semibold mb-1 ${metrics.blocked === 0 ? 'text-green-600' : 'text-primary'}`}>
-              {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked`}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {(metrics.total - metrics.blocked).toLocaleString()} safe · {metrics.blocked} blocked
-            </div>
+          <div className={`text-lg font-semibold mb-1 ${metrics.blocked === 0 ? 'text-green-600' : 'text-primary'}`}>
+            {metrics.blocked === 0 ? `✓ ${currentProfile.display_name} is protected` : `${metrics.blocked} threats blocked`}
           </div>
+          <div className="text-sm text-muted-foreground">
+            {(metrics.total - metrics.blocked).toLocaleString()} safe · {metrics.blocked} blocked
+          </div>
+        </div>
 
-          {/* QUICK HIGHLIGHTS */}
-          <div className="grid grid-cols-2 gap-6 pt-6 border-t border-muted/50">
-            <div className="text-center">
-              <div className="text-xs text-muted-foreground mb-1">Peak Activity</div>
-              <div className="text-base font-semibold">{highlights.peakHour?.time || 'N/A'}</div>
-              <div className="text-xs text-muted-foreground">{highlights.peakHour?.count.toLocaleString() || '0'} requests</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xs text-muted-foreground mb-1">Trackers</div>
-              <div className="text-base font-semibold">{trackerCount}</div>
-              <div className="text-xs text-muted-foreground">companies</div>
-            </div>
+        {/* QUICK HIGHLIGHTS */}
+        <div className="grid grid-cols-2 gap-6 pt-6 border-t border-muted/50 max-w-md mx-auto">
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground mb-1">Peak Activity</div>
+            <div className="text-base font-semibold">{highlights.peakHour?.time || 'N/A'}</div>
+            <div className="text-xs text-muted-foreground">{highlights.peakHour?.count.toLocaleString() || '0'} requests</div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground mb-1">Trackers</div>
+            <div className="text-base font-semibold">{trackerCount}</div>
+            <div className="text-xs text-muted-foreground">companies</div>
+          </div>
+        </div>
+      </div>
 
       {/* KEY METRICS CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -472,7 +470,7 @@ const ParentAnalyticsDashboard = () => {
       )}
 
       {/* TABBED SECTION */}
-      <Card>
+      <Card className="border-0 bg-muted/30">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="screenTime">Screen Time</TabsTrigger>
@@ -500,7 +498,20 @@ const ParentAnalyticsDashboard = () => {
                   {metrics.total.toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground font-medium">
-                {highlights.peakHour ? `Most active ${highlights.peakHour.time}` : 'No activity detected'}
+                {(() => {
+                  if (timeRange === '6h' || timeRange === '12h' || timeRange === '1d') {
+                    // For hourly views: show peak hour
+                    return highlights.peakHour ? `Most active ${highlights.peakHour.time}` : 'No activity detected';
+                  } else {
+                    // For 7d/30d: show peak day from chartData
+                    const sortedData = [...chartData].sort((a, b) => (b.allowed + b.blocked) - (a.allowed + a.blocked));
+                    const topDay = sortedData[0];
+                    if (topDay && (topDay.allowed + topDay.blocked) > 0) {
+                      return `Most active ${topDay.time}`;
+                    }
+                    return 'No activity this period';
+                  }
+                })()}
               </div>
               </div>
 
@@ -597,7 +608,8 @@ const ParentAnalyticsDashboard = () => {
                       <div key={`${item.reason}-${idx}`} className={`rounded-lg ${bgColor} overflow-hidden`}>
                         <div className="px-4 py-3">
                           <div className="flex items-start gap-2.5">
-                            <span className="text-base mt-0.5 flex-shrink-0">🚫</span>
+                            {/* <span className="text-base mt-0.5 flex-shrink-0">🚫</span> */}
+                            <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold truncate">{display}</p>
                               <p className="text-xs text-muted-foreground truncate mt-0.5">{original}</p>
@@ -622,11 +634,9 @@ const ParentAnalyticsDashboard = () => {
       </Card>
 
       {/* CONNECTED DEVICES */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Connected Devices</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold pb-4 border-b border-muted">Connected Devices</h3>
+        <div>
           {devices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {devices.map((device, i) => (
@@ -655,18 +665,16 @@ const ParentAnalyticsDashboard = () => {
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+        </div>
 
       {/* RECENT ACTIVITY */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Recent Activity</CardTitle>
-            <Badge variant="outline">{allLogs.length}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between pb-4 border-b border-muted">
+          <h3 className="text-base font-semibold">Recent Activity</h3>
+          <Badge variant="outline">{allLogs.length}</Badge>
+        </div>
+        <div>
           <div className="relative mb-6">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -726,9 +734,10 @@ const ParentAnalyticsDashboard = () => {
                             })}
                           </span>
                           <span className="flex-1 text-sm font-medium truncate">{log.domain}</span>
-                          <span className="text-2xl flex-shrink-0">
-                            {log.status === 'allowed' ? '✅' : '🚫'}
-                          </span>
+                      {log.status === 'default' 
+                ? <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                : <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              }
                         </div>
                       ))}
                       
@@ -757,8 +766,8 @@ const ParentAnalyticsDashboard = () => {
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
       
       <DNSSetupDialog
         open={showDNSSetup}

@@ -79,11 +79,10 @@ const ParentAnalyticsDashboard = () => {
   const trackersQuery = useTrackerStats(profileIdStr, timeRange);
 
   const isInitialLoad =
-    overviewQuery.isLoading ||
-    domainsQuery.isLoading ||
-    timelineQuery.isLoading ||
-    logsQuery.isLoading ||
-    trackersQuery.isLoading;
+    !overviewQuery.data && 
+    !domainsQuery.data && 
+    !timelineQuery.data &&
+    (overviewQuery.isLoading || domainsQuery.isLoading || timelineQuery.isLoading);
 
   const isRefreshing =
     overviewQuery.isFetching ||
@@ -287,6 +286,7 @@ const ParentAnalyticsDashboard = () => {
       <div className="space-y-6 pb-20 lg:pb-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
+          <div className="text-sm text-muted-foreground">Loading analytics...</div>
         </div>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map(i => (

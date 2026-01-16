@@ -269,7 +269,11 @@ const CustomLists = () => {
     );
   }
 
-  if (isLoading) {
+  // Only show skeleton if BOTH queries have no data yet
+  const showSkeleton = (allowlistQuery.isLoading && !allowlistQuery.data) && 
+                       (denylistQuery.isLoading && !denylistQuery.data);
+  
+  if (showSkeleton) {
     return (
       <div className="space-y-6">
         <div>

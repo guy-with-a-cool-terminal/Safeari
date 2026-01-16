@@ -23,6 +23,7 @@ class APIClient {
     // Request interceptor - add auth token to all requests except auth endpoints
     this.client.interceptors.request.use(
       (config) => {
+        console.log(`[API REQ] ${config.method?.toUpperCase()} ${config.url}`);
         const isAuthEndpoint = config.url?.includes('/auth/login') ||
                                config.url?.includes('/auth/register') ||
                                config.url?.includes('/auth/refresh') ||
@@ -32,25 +33,42 @@ class APIClient {
           const token = localStorage.getItem('access_token');
           if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+          }else{
+            console.warn('[API REQ] No access token found');
           }
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      // (error) => Promise.reject(error)
+      (error) => {
+      console.error('[API REQ ERROR]', error);
+      return Promise.reject(error);
+    }
     );
 
     // Response interceptor - handle token refresh on 401
     this.client.interceptors.response.use(
-      (response: AxiosResponse) => response,
+      // (response: AxiosResponse) => response,
+      (response: AxiosResponse) => {
+      console.log(`[API RES] ${response.config.url} - ${response.status}`);
+      return response;
+    },
+
       async (error: AxiosError) => {
+        const errorType = error.code === 'ECONNABORTED' ? 'TIMEOUT' : 
+                    error.code === 'ERR_CANCELED' ? 'CANCELED' : 
+                    error.response?.status || 'NETWORK_ERROR';
+         console.error(`[API RES ERROR] ${error.config?.url} - ${errorType}`);
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
         // Only attempt refresh for 401 errors, not on refresh endpoint itself
         const isRefreshEndpoint = originalRequest?.url?.includes('/auth/refresh');
         
         if ((error.response?.status === 401 || error.response?.status === 403) && originalRequest && !originalRequest._retry && !isRefreshEndpoint) {
+          console.log('[API] Attempting token refresh...');
           
           if (this.isRefreshing) {
+            console.log('[API] Already refreshing, queuing request');
             // Queue this request to retry after refresh completes
             return new Promise((resolve) => {
               this.refreshSubscribers.push((token: string) => {

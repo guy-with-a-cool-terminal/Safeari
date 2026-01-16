@@ -248,7 +248,10 @@ const Dashboard = () => {
 
   // Track when we have definitive profiles data
   useEffect(() => {
-    if (!profilesLoading) {
+    // Consider initial load complete if:
+    // 1. Loading finished, OR
+    // 2. We have any profiles data (even if still loading)
+    if (!profilesLoading || profiles.length > 0) {
       setInitialLoadComplete(true);
       setHasProfilesData(profiles.length > 0);
     }

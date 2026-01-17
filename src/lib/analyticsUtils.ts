@@ -189,16 +189,24 @@ export function formatTimeline(timeline: TimelineData[], timeRange: string = '1d
 
   if (allowedQueries.length === 0 && blockedQueries.length === 0) return [];
 
-  // For 6h/12h/1d: show hourly bars
+  // For 6h/12h/1d: show hourly bars (rolling window from now backwards)
   if (timeRange === '6h' || timeRange === '12h' || timeRange === '1d') {
     const hours = timeRange === '6h' ? 6 : timeRange === '12h' ? 12 : 24;
-    return Array.from({ length: hours }, (_, hour) => {
-      const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      const period = hour >= 12 ? 'PM' : 'AM';
+    const now = new Date();
+    
+    return Array.from({ length: hours }, (_, index) => {
+      // Calculate hours ago: index 0 = oldest (hours-1 ago), index 23 = newest (0 ago)
+      const hoursAgo = hours - 1 - index;
+      const targetDate = new Date(now.getTime() - (hoursAgo * 60 * 60 * 1000));
+      const targetHour = targetDate.getHours();
+      
+      const hour12 = targetHour === 0 ? 12 : targetHour > 12 ? targetHour - 12 : targetHour;
+      const period = targetHour >= 12 ? 'PM' : 'AM';
+      
       return {
         time: `${hour12}${period}`,
-        allowed: allowedQueries[hour] || 0,
-        blocked: blockedQueries[hour] || 0
+        allowed: allowedQueries[index] || 0,
+        blocked: blockedQueries[index] || 0
       };
     });
   }

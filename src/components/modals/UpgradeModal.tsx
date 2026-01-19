@@ -15,11 +15,12 @@ interface UpgradeModalProps {
   feature: string;
   currentTier: string;
   requiredTier: string;
+  isRateLimit?: boolean; 
 }
 /**
  * Modal shown when user tries to access a locked feature
  */
-const UpgradeModal = ({ open, onOpenChange, feature, currentTier, requiredTier }: UpgradeModalProps) => {
+const UpgradeModal = ({ open, onOpenChange, feature, currentTier, requiredTier, isRateLimit }: UpgradeModalProps) => {
   const [tiers, setTiers] = useState<SubscriptionTier[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,9 +70,14 @@ const UpgradeModal = ({ open, onOpenChange, feature, currentTier, requiredTier }
             </div>
           </div>
           <div className="space-y-2 text-center">
-            <DialogTitle className="text-2xl">Unlock Premium Feature</DialogTitle>
+            <DialogTitle className="text-2xl">
+              {isRateLimit ? "Don't Miss a Moment" : "Unlock Premium Feature"}
+            </DialogTitle>
             <DialogDescription className="text-sm">
-              This feature requires {required?.name} tier or higher
+              {isRateLimit 
+                ? `You've hit your ${currentTier === 'free' ? 'free plan' : current?.name} limit. While you're locked out, your child's online activity is going unwatched. Upgrade to ${required?.name} now to keep protecting them 24/7.`
+                : `This feature requires ${required?.name} tier or higher`
+              }
             </DialogDescription>
           </div>
         </DialogHeader>
@@ -84,8 +90,15 @@ const UpgradeModal = ({ open, onOpenChange, feature, currentTier, requiredTier }
                 <Lock className="h-4 w-4 text-primary" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Locked Feature</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                  {isRateLimit ? "Rate Limit Reached" : "Locked Feature"}
+                </p>
                 <p className="font-semibold text-sm text-foreground truncate">{formatFeatureName(feature)}</p>
+                {isRateLimit && (
+                  <p className="text-[10px] text-amber-600 dark:text-amber-500 mt-0.5 font-medium">
+                    ⚠️ Monitoring paused until upgrade
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -165,7 +178,7 @@ const UpgradeModal = ({ open, onOpenChange, feature, currentTier, requiredTier }
           </Button>
           <Link to="/account/subscription" onClick={() => onOpenChange(false)} className="flex-1">
             <Button className="w-full h-10 text-sm font-semibold">
-              Upgrade Now
+              {isRateLimit ? "Unlock Protection Now" : "Upgrade Now"}
               <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
             </Button>
           </Link>

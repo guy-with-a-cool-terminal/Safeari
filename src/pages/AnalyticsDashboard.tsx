@@ -6,7 +6,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import {
   Lock, Shield, Activity, Laptop, Eye, RefreshCw, FileDown,
-  AlertCircle, Users, ChevronDown, Search, X, CheckCircle2, XCircle
+  AlertCircle, Users, ChevronDown, Search, X, CheckCircle2, XCircle,
+  Moon, ShieldAlert, ShieldCheck, TrendingUp
 } from "lucide-react";
 import {
   Select,
@@ -40,6 +41,7 @@ import {
 } from "@/hooks/queries";
 import {
   ANALYTICS_CONFIG,
+  PREVIEW_DATA,
   calculateMetrics,
   groupBlockReasons,
   formatTimeline,
@@ -117,7 +119,15 @@ const ParentAnalyticsDashboard = () => {
   }, [hasErrors, timeRange, overviewQuery.data, toast]);
 
   // ALL useMemo HOOKS
-  const metrics = useMemo(() => calculateMetrics(overviewQuery.data), [overviewQuery.data]);
+  const showPreviewMode = !overviewQuery.isLoading && overviewQuery.data && calculateMetrics(overviewQuery.data).total === 0;
+  
+  const metrics = useMemo(() => {
+    const realMetrics = calculateMetrics(overviewQuery.data);
+    if (showPreviewMode) {
+      return calculateMetrics(PREVIEW_DATA.overview);
+    }
+    return realMetrics;
+  }, [overviewQuery.data, showPreviewMode]);
 
   const blockReasons = useMemo(
     () => groupBlockReasons(logsQuery.data?.data || []),
@@ -125,25 +135,28 @@ const ParentAnalyticsDashboard = () => {
   );
 
   const chartData = useMemo(
-    () => formatTimeline(timelineQuery.data || [], timeRange),
-    [timelineQuery.data, timeRange]
+    () => {
+      const data = showPreviewMode ? PREVIEW_DATA.timeline : (timelineQuery.data || []);
+      return formatTimeline(data, timeRange);
+    },
+    [timelineQuery.data, timeRange, showPreviewMode]
   );
 
   const highlights = useMemo(
     () => calculateTodaysHighlights(
       timelineQuery.data || [],
-      blockReasons,
-      trackersQuery.data?.allowed_trackers || [],
-      currentProfile?.display_name || ''
+      timeRange,
+      chartData,
+      metrics
     ),
-    [timelineQuery.data, blockReasons, trackersQuery.data?.allowed_trackers, currentProfile?.display_name]
+    [timelineQuery.data, timeRange, chartData, metrics]
   );
 
-  const devices = overviewQuery.data?.devices || [];
-  const topAllowedDomains = (domainsQuery.data || []).slice(0, 15);
-  const allowedTrackers = trackersQuery.data?.allowed_trackers || [];
-  const trackerCount = trackersQuery.data?.summary.allowed_count || 0;
-  const allLogs = logsQuery.data?.data || [];
+  const devices = showPreviewMode ? PREVIEW_DATA.overview.devices : (overviewQuery.data?.devices || []);
+  const topAllowedDomains = showPreviewMode ? PREVIEW_DATA.domains.slice(0, 15) : ((domainsQuery.data || []).slice(0, 15));
+  const allowedTrackers = showPreviewMode ? PREVIEW_DATA.trackers.allowed_trackers : (trackersQuery.data?.allowed_trackers || []);
+  const trackerCount = showPreviewMode ? PREVIEW_DATA.trackers.summary.allowed_count : (trackersQuery.data?.summary.allowed_count || 0);
+  const allLogs = showPreviewMode ? PREVIEW_DATA.logs : (logsQuery.data?.data || []);
   
   // Group logs by date for Recent Activity
   const groupedLogs = useMemo(() => {
@@ -343,6 +356,35 @@ const ParentAnalyticsDashboard = () => {
 
   return (
     <div className="space-y-6 pb-20 lg:pb-6 max-w-[1400px] mx-auto w-full overflow-x-hidden px-4 sm:px-6 lg:px-8">
+      {/* PREVIEW MODE BANNER */}
+      {showPreviewMode && (
+        <Alert className="bg-amber-50 dark:bg-amber-950/20 border-0">
+          <Activity className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex-1">
+              <span className="font-semibold">📊 Preview Mode</span>
+              <p className="text-sm text-muted-foreground mt-1">
+                Setup complete! Real data for {currentProfile.display_name} will appear within 10 minutes once they start browsing.
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                While you wait, explore Parental Controls to set screen time limits, block apps, or adjust content filters.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Link to="/dashboard/parental">
+                <Button size="sm" variant="outline" className="whitespace-nowrap w-full sm:w-auto">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Parental Controls
+                </Button>
+              </Link>
+              <Button onClick={() => setShowDNSSetup(true)} size="sm" variant="outline" className="whitespace-nowrap w-full sm:w-auto">
+                Review Setup
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
@@ -384,7 +426,7 @@ const ParentAnalyticsDashboard = () => {
           return (
             <Button
               key={range.value}
-              variant={timeRange === range.value ? "" : "outline"}
+              variant={timeRange === range.value ? "default" : "outline"}
               size="sm"
               disabled={!available}
               onClick={() => handleTimeRangeChange(range.value)}
@@ -494,27 +536,15 @@ const ParentAnalyticsDashboard = () => {
             <TabsContent value="screenTime" className="mt-0">
               {/* Big Summary */}
               <div className="text-center mb-8">
-                <div className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  {metrics.total.toLocaleString()}
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground font-medium">
+                  {highlights.contextIcon === 'moon' && <Moon className="h-4 w-4 text-amber-500" />}
+                  {highlights.contextIcon === 'shield-alert' && <ShieldAlert className="h-4 w-4 text-red-500" />}
+                  {highlights.contextIcon === 'shield-check' && <ShieldCheck className="h-4 w-4 text-green-500" />}
+                  {highlights.contextIcon === 'trending-up' && <TrendingUp className="h-4 w-4 text-blue-500" />}
+                  {highlights.contextIcon === 'activity' && <Activity className="h-4 w-4" />}
+                  <span>{highlights.contextLabel}</span>
                 </div>
-                <div className="text-sm text-muted-foreground font-medium">
-                {(() => {
-                  if (timeRange === '6h' || timeRange === '12h' || timeRange === '1d') {
-                    // For hourly views: show peak hour
-                    return highlights.peakHour ? `Most active ${highlights.peakHour.time}` : 'No activity detected';
-                  } else {
-                    // For 7d/30d: show peak day from chartData
-                    const sortedData = [...chartData].sort((a, b) => (b.allowed + b.blocked) - (a.allowed + a.blocked));
-                    const topDay = sortedData[0];
-                    if (topDay && (topDay.allowed + topDay.blocked) > 0) {
-                      return `Most active ${topDay.time}`;
-                    }
-                    return 'No activity this period';
-                  }
-                })()}
               </div>
-              </div>
-
               {/* Timeline Chart */}
               <div className="h-72 flex items-end gap-2 overflow-x-auto pb-2">
               {chartData.map((item, i) => {

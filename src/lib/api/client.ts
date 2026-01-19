@@ -1,5 +1,13 @@
 import axios, { type AxiosInstance, type AxiosResponse, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
+
+// Global rate limit handler - will be set by RateLimitProvider context
+let globalRateLimitHandler: ((feature: string, currentTier: string, requiredTier: string) => void) | null = null;
+
+export const setGlobalRateLimitHandler = (handler: typeof globalRateLimitHandler) => {
+  globalRateLimitHandler = handler;
+};
+
 // API client config
 // Handles auth, request/response interceptors and error management
 class APIClient {
@@ -60,6 +68,21 @@ class APIClient {
                     error.response?.status || 'NETWORK_ERROR';
          console.error(`[API RES ERROR] ${error.config?.url} - ${errorType}`);
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+        // Handle 429 Rate Limit - Show upgrade modal
+        if (error.response?.status === 429) {
+          console.log('[API] Rate limit hit - triggering upgrade modal');
+          const errorData = error.response?.data as any;
+          const feature = errorData?.feature || 'API Requests';
+          const currentTier = errorData?.current_tier || 'free';
+          const requiredTier = errorData?.required_tier || 'basic';
+          
+          if (globalRateLimitHandler) {
+            globalRateLimitHandler(feature, currentTier, requiredTier);
+          }
+          
+          return Promise.reject(error);
+        }
 
         // Only attempt refresh for 401 errors, not on refresh endpoint itself
         const isRefreshEndpoint = originalRequest?.url?.includes('/auth/refresh');

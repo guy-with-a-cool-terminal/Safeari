@@ -1,6 +1,59 @@
 import _ from 'lodash';
 import type { OverviewResponse, LogEntry, TimelineData } from "@/lib/api/types";
 
+// PREVIEW DATA - Shown while waiting for real data
+export const PREVIEW_DATA = {
+  overview: {
+    time_range: '7d',
+    queries: [
+      { status: 'default', queries: 2847 },
+      { status: 'blocked', queries: 153 }
+    ],
+    devices: [
+      { id: 'preview-device-1', name: 'iPhone 12', model: 'iPhone', queries: 1842 },
+      { id: 'preview-device-2', name: 'iPad Pro', model: 'iPad', queries: 1158 }
+    ]
+  },
+  timeline: [
+    {
+      status: 'default',
+      queries: [0,0,0,0,0,0,45,89,156,234,189,98,67,45,178,267,312,389,245,156,89,67,234,189]
+    },
+    {
+      status: 'blocked',
+      queries: [0,0,0,0,0,0,2,5,8,12,9,4,3,2,9,13,15,18,12,8,4,3,11,9]
+    }
+  ],
+  domains: [
+    { domain: 'youtube.com', root: 'youtube', queries: 456, tracker: false },
+    { domain: 'tiktok.com', root: 'tiktok', queries: 389, tracker: false },
+    { domain: 'instagram.com', root: 'instagram', queries: 312, tracker: true },
+    { domain: 'snapchat.com', root: 'snapchat', queries: 267, tracker: false },
+    { domain: 'discord.com', root: 'discord', queries: 234, tracker: false },
+    { domain: 'roblox.com', root: 'roblox', queries: 189, tracker: false },
+    { domain: 'twitter.com', root: 'twitter', queries: 156, tracker: true },
+    { domain: 'facebook.com', root: 'facebook', queries: 134, tracker: true },
+    { domain: 'netflix.com', root: 'netflix', queries: 112, tracker: false },
+    { domain: 'spotify.com', root: 'spotify', queries: 98, tracker: true }
+  ],
+  logs: [
+    { timestamp: new Date(Date.now() - 5 * 60000).toISOString(), domain: 'youtube.com', status: 'default', reasons: [], device: { name: 'iPhone 12', model: 'iPhone' } },
+    { timestamp: new Date(Date.now() - 12 * 60000).toISOString(), domain: 'tiktok.com', status: 'blocked', reasons: [{ name: 'Social Media - Parental Controls' }], device: { name: 'iPhone 12', model: 'iPhone' } },
+    { timestamp: new Date(Date.now() - 18 * 60000).toISOString(), domain: 'instagram.com', status: 'default', reasons: [], device: { name: 'iPad Pro', model: 'iPad' } },
+    { timestamp: new Date(Date.now() - 25 * 60000).toISOString(), domain: 'gambling-site.com', status: 'blocked', reasons: [{ name: 'Gambling - Security Filter' }], device: { name: 'iPhone 12', model: 'iPhone' } },
+    { timestamp: new Date(Date.now() - 32 * 60000).toISOString(), domain: 'discord.com', status: 'default', reasons: [], device: { name: 'iPad Pro', model: 'iPad' } }
+  ],
+  trackers: {
+    summary: { allowed_count: 4, blocked_count: 0 },
+    allowed_trackers: [
+      { tracker: 'Google Analytics', count: 156 },
+      { tracker: 'Facebook Pixel', count: 134 },
+      { tracker: 'Instagram Tracker', count: 89 },
+      { tracker: 'Twitter Analytics', count: 67 }
+    ]
+  }
+};
+
 // CONFIGURATION
 export const ANALYTICS_CONFIG = {
   LOGS_PER_PAGE: 50,
@@ -194,14 +247,16 @@ export function formatTimeline(timeline: TimelineData[], timeRange: string = '1d
     const hours = timeRange === '6h' ? 6 : timeRange === '12h' ? 12 : 24;
     const now = new Date();
     
+    const currentHour = now.getHours();
+    
     return Array.from({ length: hours }, (_, index) => {
-      // Calculate hours ago: index 0 = oldest (hours-1 ago), index 23 = newest (0 ago)
+      // Calculate the actual clock hour this bar represents
+      // index 0 = oldest hour, index 23 = current hour
       const hoursAgo = hours - 1 - index;
-      const targetDate = new Date(now.getTime() - (hoursAgo * 60 * 60 * 1000));
-      const targetHour = targetDate.getHours();
+      const actualHour = (currentHour - hoursAgo + 24) % 24;
       
-      const hour12 = targetHour === 0 ? 12 : targetHour > 12 ? targetHour - 12 : targetHour;
-      const period = targetHour >= 12 ? 'PM' : 'AM';
+      const hour12 = actualHour === 0 ? 12 : actualHour > 12 ? actualHour - 12 : actualHour;
+      const period = actualHour >= 12 ? 'PM' : 'AM';
       
       return {
         time: `${hour12}${period}`,
@@ -327,128 +382,90 @@ export function getLogsLimit(timeRange: string): number {
  */
 export interface TodaysHighlights {
   peakHour: { time: string; count: number } | null;
-  topBlockedCategory: {
-    name: string;  // The block reason name (could be blocklist, parental control, security rule, etc.)
-    count: number; // Total number of blocks for THIS specific reason (not total blocks)
-  } | null;
-  uniqueTrackers: { count: number; topCompanies: string[] };
-  activityPattern: string;
+  contextLabel: string;
+  contextIcon: 'moon' | 'shield-alert' | 'shield-check' | 'trending-up' | 'activity';
 }
 
 export function calculateTodaysHighlights(
   timeline: TimelineData[],
-  blockReasons: BlockReason[],
-  trackers: Array<{ tracker: string; queries: number }>,
-  profileName: string
+  timeRange: string,
+  chartData: Array<{ time: string; allowed: number; blocked: number }>,
+  metrics: ProtectionMetrics
 ): TodaysHighlights {
   try {
-    // Calculate peak hour from timeline - aggregate by hour of day across all days
     let peakHour: { time: string; count: number } | null = null;
-    if (timeline?.length > 0) {
-      const allowedData = timeline.find(t => t.status === 'default');
-      const blockedData = timeline.find(t => t.status === 'blocked');
-
-      const allowedQueries = allowedData?.queries || [];
-      const blockedQueries = blockedData?.queries || [];
-
-      // Aggregate by hour of day (0-23) across all days
-      const hourlyTotals: number[] = new Array(24).fill(0);
-
-      for (let i = 0; i < Math.max(allowedQueries.length, blockedQueries.length); i++) {
-        const hourOfDay = i % 24;
-        const total = (allowedQueries[i] || 0) + (blockedQueries[i] || 0);
-        hourlyTotals[hourOfDay] += total;
-      }
-
-      // Find peak hour
+    
+    if (timeline?.length > 0 && chartData?.length > 0) {
+      // Find peak from chartData (already formatted with correct labels)
       let maxCount = 0;
-      let maxHour = 0;
-      for (let hour = 0; hour < 24; hour++) {
-        if (hourlyTotals[hour] > maxCount) {
-          maxCount = hourlyTotals[hour];
-          maxHour = hour;
+      let peakTime = '';
+      
+      for (const item of chartData) {
+        const total = item.allowed + item.blocked;
+        if (total > maxCount) {
+          maxCount = total;
+          peakTime = item.time;
         }
       }
 
-      if (maxCount > 0) {
-        // Format hour in 12-hour format with space
-        const hour12 = maxHour === 0 ? 12 : maxHour > 12 ? maxHour - 12 : maxHour;
-        const period = maxHour >= 12 ? 'PM' : 'AM';
-        peakHour = { time: `${hour12} ${period}`, count: maxCount };
+      if (maxCount > 0 && peakTime) {
+        peakHour = { time: peakTime, count: maxCount };
       }
     }
 
-    // Get top block reason - shows which rule/blocklist blocked the most
-    // This could be from ads/trackers, parental controls, security rules, custom blocklists, etc.
-    // Count represents total blocks for THIS SPECIFIC REASON (not total blocks across all reasons)
-    let topBlockedCategory: { name: string; count: number } | null = null;
-    if (blockReasons?.length > 0) {
-      // blockReasons is already sorted by count descending, pick first item
-      topBlockedCategory = {
-        name: blockReasons[0].reason,
-        count: blockReasons[0].count
-      };
+    // Generate smart context label
+    const timeRangeLabel = {
+      '6h': 'Last 6 Hours',
+      '12h': 'Last 12 Hours', 
+      '1d': 'Today',
+      '7d': 'Last 7 Days',
+      '30d': 'Last 30 Days'
+    }[timeRange] || 'Last 24 Hours';
+
+    // Detect late night activity ONLY for hourly views (6h, 12h, 1d)
+    const isHourlyView = ['6h', '12h', '1d'].includes(timeRange);
+    let lateNightActivity = null;
+    
+    if (isHourlyView) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      lateNightActivity = chartData.find((item, idx) => {
+        const hoursAgo = chartData.length - 1 - idx;
+        const actualHour = (currentHour - hoursAgo + 24) % 24;
+        const isLateNight = actualHour >= 0 && actualHour <= 5;
+        const hasActivity = (item.allowed + item.blocked) > 0;
+        return isLateNight && hasActivity;
+      });
     }
 
-    // Get unique trackers with top companies
-    const uniqueTrackers = {
-      count: trackers?.length || 0,
-      topCompanies: (trackers || []).slice(0, 3).map(t => t.tracker)
-    };
+    const blockRate = metrics.total > 0 ? (metrics.blocked / metrics.total) * 100 : 0;
 
-    // Determine activity pattern based on hour distribution
-    let activityPattern = 'Moderate activity throughout the day';
-    if (timeline?.length > 0) {
-      const allowedData = timeline.find(t => t.status === 'default');
-      const queries = allowedData?.queries || [];
-
-      if (queries.length >= 24) {
-        // Calculate activity in different time periods
-        const morning = queries.slice(6, 12).reduce((sum, q) => sum + q, 0);
-        const afternoon = queries.slice(12, 18).reduce((sum, q) => sum + q, 0);
-        const evening = queries.slice(18, 24).reduce((sum, q) => sum + q, 0);
-        const night = queries.slice(0, 6).reduce((sum, q) => sum + q, 0);
-
-        const total = morning + afternoon + evening + night;
-        if (total === 0) {
-          activityPattern = 'No activity detected yet';
-        } else {
-          const morningPct = (morning / total) * 100;
-          const afternoonPct = (afternoon / total) * 100;
-          const eveningPct = (evening / total) * 100;
-          const nightPct = (night / total) * 100;
-
-          // Find the dominant period
-          const max = Math.max(morningPct, afternoonPct, eveningPct, nightPct);
-          if (max === morningPct && morningPct > 40) {
-            activityPattern = 'Most active in the morning';
-          } else if (max === afternoonPct && afternoonPct > 40) {
-            activityPattern = 'Most active in the afternoon';
-          } else if (max === eveningPct && eveningPct > 40) {
-            activityPattern = 'Most active in the evening';
-          } else if (max === nightPct && nightPct > 30) {
-            activityPattern = 'Significant late-night activity';
-          } else {
-            activityPattern = 'Activity spread throughout the day';
-          }
-        }
-      }
+    let context = '';
+    let contextIcon: 'moon' | 'shield-alert' | 'shield-check' | 'trending-up' | 'activity' = 'activity';
+    
+    if (lateNightActivity) {
+      context = `Active at ${lateNightActivity.time} (bedtime)`;
+      contextIcon = 'moon';
+    } else if (blockRate > 10) {
+      context = `${metrics.blocked.toLocaleString()} threats blocked`;
+      contextIcon = 'shield-alert';
+    } else if (metrics.blocked === 0 && metrics.total > 0) {
+      context = `All activity safe`;
+      contextIcon = 'shield-check';
+    } else if (peakHour) {
+      context = `Most active ${peakHour.time}`;
+      contextIcon = 'trending-up';
+    } else {
+      context = 'No activity detected';
+      contextIcon = 'activity';
     }
 
-    return {
-      peakHour,
-      topBlockedCategory,
-      uniqueTrackers,
-      activityPattern
-    };
+    const contextLabel = `${timeRangeLabel} • ${context}`;
+
+    return { peakHour, contextLabel, contextIcon };
   } catch (error) {
     console.error('Error calculating highlights:', error);
-    return {
-      peakHour: null,
-      topBlockedCategory: null,
-      uniqueTrackers: { count: 0, topCompanies: [] },
-      activityPattern: 'Unable to calculate activity pattern'
-    };
+    return { peakHour: null, contextLabel: 'Last 24 Hours', contextIcon: 'activity' };
   }
 }
 

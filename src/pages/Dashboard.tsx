@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Shield, BarChart3, Users, Lock, Eye, Settings, List, MoreHorizontal, CreditCard, MessageSquare } from "lucide-react";
+import { Shield, BarChart3, Users, Lock, Eye, Settings, List, MoreHorizontal, CreditCard, MessageSquare, ChevronRight } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import TopBar from "@/components/dashboard/TopBar";
@@ -17,6 +17,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip";
 import { useOnboardingTour, TOUR_PRIORITIES } from "@/components/onboarding/useOnboardingTour";
+import { GlobalNav } from "@/components/navigation/GlobalNav";
 
 // Navigation configuration with tier-based feature flags
 const getNavItems = (tier: string = 'free') => {
@@ -122,27 +123,112 @@ const DashboardSkeleton = () => (
 );
 
 // Empty state for no profiles
-const NoProfilesEmptyState = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center p-4">
-    <div className="text-center space-y-6 max-w-md">
-      <div className="relative inline-block">
-        <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl" />
-        <div className="relative h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-          <Users className="h-10 w-10 text-primary" />
+const NoProfilesEmptyState = () => {
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+
+  return (
+    <>
+      <GlobalNav />
+      <div className="min-h-screen bg-background flex items-center justify-center p-6 md:p-8">
+        <div className="text-center space-y-12 max-w-3xl">
+          {/* Icon */}
+          <div className="relative inline-block">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl" />
+            <div className="relative h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <Users className="h-12 w-12 text-primary" />
+            </div>
+          </div>
+
+          {/* Heading */}
+          <div className="space-y-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground">Welcome to Safeari</h2>
+            <p className="text-xl text-muted-foreground max-w-xl mx-auto">
+              Create your child's profile and take control of their digital safety in minutes.
+            </p>
+          </div>
+
+          {/* What they'll get - 3 quick benefits with more space */}
+          <div className="grid md:grid-cols-3 gap-6 text-left pt-4">
+            <div className="p-6 rounded-xl bg-muted/40 border border-border/50 hover:border-primary/30 transition-colors">
+              <Shield className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-semibold text-base mb-2">Shield from harmful content</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Automatically block inappropriate sites, adult content, and online threats before they reach your child.
+              </p>
+            </div>
+            <div className="p-6 rounded-xl bg-muted/40 border border-border/50 hover:border-primary/30 transition-colors">
+              <BarChart3 className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-semibold text-base mb-2">See their online activity</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Know exactly what sites they visit, when they're most active, and spot concerning patterns early.
+              </p>
+            </div>
+            <div className="p-6 rounded-xl bg-muted/40 border border-border/50 hover:border-primary/30 transition-colors">
+              <Lock className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-semibold text-base mb-2">Control screen time</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Set daily limits, create schedules, and ensure healthy device habits without constant battles.
+              </p>
+            </div>
+          </div>
+
+          {/* Primary CTA */}
+          <div className="space-y-4 pt-4">
+            <Button asChild size="lg" className="w-full md:w-auto px-8 h-12 text-base">
+              <Link to="/profiles">
+                <Users className="h-5 w-5 mr-2" />
+                Create Your Child's Profile
+              </Link>
+            </Button>
+            
+            {/* Secondary action */}
+            <p className="text-sm text-muted-foreground">
+              Need help getting started?{" "}
+              <button 
+                onClick={() => setFeedbackModalOpen(true)}
+                className="text-primary hover:underline font-medium"
+              >
+                Contact Support
+              </button>
+            </p>
+          </div>
+
+          {/* Progress indicator with more space */}
+          <div className="pt-8 border-t">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-4">What happens next</p>
+            <div className="flex items-center justify-center gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                  1
+                </div>
+                <span className="font-medium">Create profile</span>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-semibold text-xs">
+                  2
+                </div>
+                <span className="text-muted-foreground">Setup device</span>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-semibold text-xs">
+                  3
+                </div>
+                <span className="text-muted-foreground">Start protecting</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="space-y-3">
-        <h2 className="text-2xl font-bold text-foreground">No Profiles Found</h2>
-        <p className="text-muted-foreground">
-          You don't have any profiles set up yet. Create your first profile to start protecting your family.
-        </p>
-      </div>
-      <Button asChild size="lg">
-        <Link to="/profiles">Create First Profile</Link>
-      </Button>
-    </div>
-  </div>
-);
+
+      <FeedbackModal
+        open={feedbackModalOpen}
+        onOpenChange={setFeedbackModalOpen}
+      />
+    </>
+  );
+};
 
 // Mobile bottom navigation with "More" dropdown
 const MobileBottomNav = ({ items, onFeedbackClick }: { items: any[], onFeedbackClick?: () => void }) => {

@@ -29,6 +29,7 @@ import AccountSubscription from "./pages/AccountSubscription";
 import UsageBilling from "./pages/UsageBilling";
 import NotFound from "./pages/NotFound";
 import PaymentCallback from "./pages/PaymentCallback";
+import { RateLimitProvider } from "./contexts/RateLimitContext";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -41,6 +42,7 @@ const App = () => (
           <AuthProvider>
             <SubscriptionProvider>
               <ReferenceDataProvider>
+               <RateLimitProvider>
               <ProfileProvider>
              <Routes>
                 <Route path="/" element={<Landing />} />
@@ -100,6 +102,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </ProfileProvider>
+              </RateLimitProvider>
               </ReferenceDataProvider>
             </SubscriptionProvider>
           </AuthProvider>

@@ -22,6 +22,9 @@ export function formatFeatureName(feature: string): string {
     'priority_support': 'Priority Support',
     'allowlist_custom': 'Custom Allowlists',
     'recreation_schedule': 'Recreation Scheduling',
+    'api_requests': 'Analytics Refreshes',
+    'analytics': 'Analytics Dashboard',
+    'data_exports': 'Data Exports',
   };
 
   // Check for special mapping first

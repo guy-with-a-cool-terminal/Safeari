@@ -12,7 +12,7 @@ export const setGlobalRateLimitHandler = (handler: typeof globalRateLimitHandler
 // Handles auth, request/response interceptors and error management
 class APIClient {
   private client: AxiosInstance;
-  private baseURL: string = import.meta.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  private baseURL: string = import.meta.env.NEXT_PUBLIC_API_URL || 'https://api.safeari.co.ke/';
   private isRefreshing: boolean = false;
   private refreshSubscribers: Array<(token: string) => void> = [];
 

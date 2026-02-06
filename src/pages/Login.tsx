@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import SafeariFullLogo from "@/assets/favicon.svg";
+import { Turnstile } from '@marsidev/react-turnstile';
 
 /**
  * INTEGRATION NOTES
@@ -32,6 +33,7 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthCallback, setIsOAuthCallback] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -74,11 +76,21 @@ const Login = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (!turnstileToken) {
+      toast({
+        variant: "destructive",
+        title: "Verification required",
+        description: "Please complete the security check.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await login({
         email: formData.email,
         password: formData.password,
+        turnstile_token: turnstileToken,
       });
 
       toast({
@@ -285,6 +297,24 @@ const Login = () => {
                     {errors.password && (
                       <p className="text-sm text-red-400">{errors.password}</p>
                     )}
+                  </div>
+
+                  {/* Turnstile Challenge */}
+                  <div className="flex justify-center">
+                    <Turnstile
+                      siteKey="0x4AAAAAACYKWghgyX9hvUFu"
+                      onSuccess={(token) => setTurnstileToken(token)}
+                      onError={() => {
+                        toast({
+                          variant: "destructive",
+                          title: "Verification failed",
+                          description: "Please refresh the page and try again.",
+                        });
+                      }}
+                      options={{
+                        theme: 'dark',
+                      }}
+                    />
                   </div>
 
                   <Button 

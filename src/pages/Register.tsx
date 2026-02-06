@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import SafeariFullLogo from "@/assets/favicon.svg";
+import { Turnstile } from '@marsidev/react-turnstile';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const Register = () => {
   const [isOAuthCallback, setIsOAuthCallback] = useState(false);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -80,11 +82,21 @@ const Register = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (!turnstileToken) {
+      toast({
+        variant: "destructive",
+        title: "Verification required",
+        description: "Please complete the security check.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       await register({
         email: formData.email,
         password: formData.password,
+        turnstile_token: turnstileToken,
       });
 
       // Show email verification screen
@@ -364,6 +376,24 @@ const Register = () => {
                     {errors.confirmPassword && (
                       <p className="text-sm text-red-400">{errors.confirmPassword}</p>
                     )}
+                  </div>
+
+                  {/* Turnstile Challenge */}
+                  <div className="flex justify-center">
+                    <Turnstile
+                      siteKey="0x4AAAAAACYKWghgyX9hvUFu"
+                      onSuccess={(token) => setTurnstileToken(token)}
+                      onError={() => {
+                        toast({
+                          variant: "destructive",
+                          title: "Verification failed",
+                          description: "Please refresh the page and try again.",
+                        });
+                      }}
+                      options={{
+                        theme: 'dark',
+                      }}
+                    />
                   </div>
 
                   <Button 

@@ -6,6 +6,7 @@ import apiClient from "./client";
 export interface LoginRequest {
   email: string;
   password: string;
+  turnstile_token: string;
 }
 
 export interface LoginResponse {
@@ -20,6 +21,7 @@ export interface LoginResponse {
 export interface RegisterRequest {
   email: string;
   password: string;
+  turnstile_token: string;
 }
 
 export interface RegisterResponse {

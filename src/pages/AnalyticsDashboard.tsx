@@ -81,8 +81,8 @@ const ParentAnalyticsDashboard = () => {
   const trackersQuery = useTrackerStats(profileIdStr, timeRange);
 
   const isInitialLoad =
-    !overviewQuery.data && 
-    !domainsQuery.data && 
+    !overviewQuery.data &&
+    !domainsQuery.data &&
     !timelineQuery.data &&
     (overviewQuery.isLoading || domainsQuery.isLoading || timelineQuery.isLoading);
 
@@ -120,7 +120,7 @@ const ParentAnalyticsDashboard = () => {
 
   // ALL useMemo HOOKS
   const showPreviewMode = !overviewQuery.isLoading && overviewQuery.data && calculateMetrics(overviewQuery.data).total === 0;
-  
+
   const metrics = useMemo(() => {
     const realMetrics = calculateMetrics(overviewQuery.data);
     if (showPreviewMode) {
@@ -157,19 +157,19 @@ const ParentAnalyticsDashboard = () => {
   const allowedTrackers = showPreviewMode ? PREVIEW_DATA.trackers.allowed_trackers : (trackersQuery.data?.allowed_trackers || []);
   const trackerCount = showPreviewMode ? PREVIEW_DATA.trackers.summary.allowed_count : (trackersQuery.data?.summary.allowed_count || 0);
   const allLogs = showPreviewMode ? PREVIEW_DATA.logs : (logsQuery.data?.data || []);
-  
+
   // Group logs by date for Recent Activity
   const groupedLogs = useMemo(() => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     const grouped: Record<string, typeof allLogs> = {
       today: [],
       yesterday: [],
       older: []
     };
-    
+
     allLogs.forEach(log => {
       const logDate = new Date(log.timestamp);
       if (logDate.toDateString() === today.toDateString()) {
@@ -180,21 +180,21 @@ const ParentAnalyticsDashboard = () => {
         grouped.older.push(log);
       }
     });
-    
+
     return grouped;
   }, [allLogs]);
 
   // Filter logs by search query
   const filteredGroupedLogs = useMemo(() => {
     if (!searchQuery) return groupedLogs;
-    
+
     const filtered: Record<string, typeof allLogs> = {};
     Object.keys(groupedLogs).forEach(key => {
       filtered[key] = groupedLogs[key].filter(log =>
         log.domain.toLowerCase().includes(searchQuery.toLowerCase())
       );
     });
-    
+
     return filtered;
   }, [groupedLogs, searchQuery]);
 
@@ -209,10 +209,10 @@ const ParentAnalyticsDashboard = () => {
 
   const isTimeRangeAvailable = (range: string): boolean => {
     if (!subscriptionTier) return range === "1d";
-    
+
     const selectedRange = ANALYTICS_CONFIG.TIME_RANGES.find(r => r.value === range);
     if (!selectedRange) return false;
-    
+
     return selectedRange.days <= subscriptionTier.analytics_retention;
   };
 
@@ -234,7 +234,7 @@ const ParentAnalyticsDashboard = () => {
 
   const handleExportConfirm = async () => {
     if (!currentProfile) return;
-    
+
     setIsExporting(true);
     toast({
       title: "Exporting...",
@@ -243,10 +243,10 @@ const ParentAnalyticsDashboard = () => {
 
     try {
       const exportData = await getExportLogs(currentProfile.id, ANALYTICS_CONFIG.EXPORT_LIMIT);
-      
+
       let blob: Blob;
       let filename: string;
-      
+
       if (exportFormat === 'csv') {
         const csvContent = convertToCSV(exportData.logs);
         blob = new Blob([csvContent], { type: 'text/csv' });
@@ -255,23 +255,23 @@ const ParentAnalyticsDashboard = () => {
         blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
         filename = `analytics-${currentProfile.display_name}-${new Date().toISOString().split('T')[0]}.json`;
       }
-      
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
-      
-      toast({ 
-        title: "Export Complete", 
+
+      toast({
+        title: "Export Complete",
         description: `Downloaded ${exportData.count.toLocaleString()} entries as ${exportFormat.toUpperCase()}`
       });
     } catch (error: any) {
       console.error('Export error:', error);
-      toast({ 
-        variant: "destructive", 
-        title: "Export failed", 
+      toast({
+        variant: "destructive",
+        title: "Export failed",
         description: error.message || "Please try again"
       });
     } finally {
@@ -280,7 +280,7 @@ const ParentAnalyticsDashboard = () => {
   };
 
   const toggleDay = (day: string) => {
-    setExpandedDays(prev => 
+    setExpandedDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
     );
   };
@@ -319,31 +319,23 @@ const ParentAnalyticsDashboard = () => {
           <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
         </div>
 
-        <Card className="border-0 bg-muted/20">
-          <CardContent className="flex flex-col items-center justify-center py-16 space-y-6">
-            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-              <Activity className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">Waiting for {currentProfile.display_name}'s First Activity...</h3>
-              <p className="text-muted-foreground max-w-md">
-                Make sure you set up {currentProfile.display_name}'s devices as instructed.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-2xl px-4 sm:px-0">
-              <Button
-                onClick={() => setShowDNSSetup(true)}
-                size="lg"
-                className="w-full"
-              >
-                <Shield className="h-5 w-5 mr-2" />
-                View DNS Setup Instructions
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
+        <div className="rounded-xl bg-muted/20 flex flex-col items-center justify-center py-16 space-y-6">
+          <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+            <Activity className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-xl font-semibold">Waiting for {currentProfile.display_name}'s First Activity...</h3>
+            <p className="text-muted-foreground max-w-md">
+              Make sure you set up {currentProfile.display_name}'s devices as instructed.
+              Once they start browsing, you'll see their activity here.
+            </p>
+          </div>
+          <Link to="/dashboard/setup">
+            <Button>
+              View Setup Instructions
+            </Button>
+          </Link>
+        </div>
         <DNSSetupDialog
           open={showDNSSetup}
           onOpenChange={setShowDNSSetup}
@@ -389,9 +381,9 @@ const ParentAnalyticsDashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold">{currentProfile.display_name}'s Dashboard</h1>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={refresh}
             disabled={isRefreshing}
           >
@@ -407,9 +399,9 @@ const ParentAnalyticsDashboard = () => {
               <SelectItem value="csv">CSV</SelectItem>
             </SelectContent>
           </Select>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={handleExportClick}
             disabled={isExporting}
           >
@@ -440,10 +432,10 @@ const ParentAnalyticsDashboard = () => {
       </div>
 
       {/* HERO SECTION - DONUT CHART + HIGHLIGHTS */}
-      <div className="py-8 px-6 rounded-2xl bg-muted/30">
+      <div className="py-8 px-4 sm:px-6 md:px-8 rounded-2xl bg-muted/30">
         <div className="flex flex-col items-center text-center mb-6">
           {/* RECHARTS DONUT CHART */}
-          <DonutChart 
+          <DonutChart
             safeCount={metrics.total - metrics.blocked}
             blockedCount={metrics.blocked}
             size={180}
@@ -503,7 +495,7 @@ const ParentAnalyticsDashboard = () => {
               )}
             </div>
             <Link to="/dashboard/privacy">
-              <Button size="sm" variant="outline" className="whitespace-nowrap">
+              <Button size="sm" variant="default" className="whitespace-nowrap">
                 Block Trackers
               </Button>
             </Link>
@@ -547,55 +539,55 @@ const ParentAnalyticsDashboard = () => {
               </div>
               {/* Timeline Chart */}
               <div className="h-72 flex items-end gap-2 overflow-x-auto pb-2">
-              {chartData.map((item, i) => {
-              const total = item.allowed + item.blocked;
-              const allowedHeight = ((item.allowed / maxTimelineValue) * 100);
-              const blockedHeight = ((item.blocked / maxTimelineValue) * 100);
-              const totalHeight = allowedHeight + blockedHeight;
+                {chartData.map((item, i) => {
+                  const total = item.allowed + item.blocked;
+                  const allowedHeight = ((item.allowed / maxTimelineValue) * 100);
+                  const blockedHeight = ((item.blocked / maxTimelineValue) * 100);
+                  const totalHeight = allowedHeight + blockedHeight;
 
-              return (
-              <div key={i} className="flex-1 flex flex-col items-center min-w-[32px] max-w-[48px]">
-              <div className="w-full flex flex-col items-center mb-2 relative h-full">
-              {/* Single bar with smooth gradient */}
-              <div 
-              className="w-full relative group rounded-t-lg overflow-hidden transition-all duration-300 shadow-sm"
-              style={{ 
-              height: `${Math.max(totalHeight, 5)}%`,
-              minHeight: total > 0 ? '24px' : '8px',
-              background: item.blocked > 0 
-                ? `linear-gradient(to top, 
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center min-w-[32px] max-w-[48px]">
+                      <div className="w-full flex flex-col items-center mb-2 relative h-full">
+                        {/* Single bar with smooth gradient */}
+                        <div
+                          className="w-full relative group rounded-t-lg overflow-hidden transition-all duration-300 shadow-sm"
+                          style={{
+                            height: `${Math.max(totalHeight, 5)}%`,
+                            minHeight: total > 0 ? '24px' : '8px',
+                            background: item.blocked > 0
+                              ? `linear-gradient(to top, 
                   rgb(16, 185, 129) 0%, 
                   rgb(34, 197, 94) ${(item.allowed / total * 100) - 1}%, 
                   rgb(239, 68, 68) ${(item.allowed / total * 100) + 1}%, 
                   rgb(220, 38, 38) 100%)`
-                : `linear-gradient(to top, rgb(16, 185, 129), rgb(34, 197, 94), rgb(5, 150, 105))`,
-              }}
-              >
-              {/* Glossy shine overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent pointer-events-none" />
-              {/* Hover glow */}
-              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/15 transition-all duration-200 pointer-events-none" />
-              </div>
-              </div>
-              {/* Day/Hour labels */}
-              <div className="text-xs text-muted-foreground font-medium">{item.time}</div>
-              </div>
-              );
-              })}
+                              : `linear-gradient(to top, rgb(16, 185, 129), rgb(34, 197, 94), rgb(5, 150, 105))`,
+                          }}
+                        >
+                          {/* Glossy shine overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent pointer-events-none" />
+                          {/* Hover glow */}
+                          <div className="absolute inset-0 bg-white/0 group-hover:bg-white/15 transition-all duration-200 pointer-events-none" />
+                        </div>
+                      </div>
+                      {/* Day/Hour labels */}
+                      <div className="text-xs text-muted-foreground font-medium">{item.time}</div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Compact Legend */}
               <div className="flex justify-center gap-4 mt-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 bg-green-500 rounded-sm" />
-              <span>Safe</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 bg-green-500 rounded-sm" />
+                  <span>Safe</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 bg-rose-600 rounded-sm" />
+                  <span>Blocked</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 bg-rose-600 rounded-sm" />
-              <span>Blocked</span>
-              </div>
-              </div>
-          </TabsContent>
+            </TabsContent>
 
             <TabsContent value="mostVisited" className="mt-0 max-h-96 overflow-y-auto space-y-1">
               {topAllowedDomains.map((domain, i) => {
@@ -617,23 +609,23 @@ const ParentAnalyticsDashboard = () => {
 
             <TabsContent value="blocked" className="mt-0 max-h-96 overflow-y-auto space-y-3">
               {blockReasons.length > 0 ? (
-                blockReasons.flatMap((item) => 
+                blockReasons.flatMap((item) =>
                   item.domains.map((domain, idx) => {
-                    const isDenylist = item.reason.toLowerCase().includes('denylist') || 
-                                     item.reason.toLowerCase().includes('blocked by you') ||
-                                     item.reason.toLowerCase().includes('parental');
-                    const isAdBlock = item.reason.toLowerCase().includes('ad') || 
-                                     item.reason.toLowerCase().includes('tracker');
-                    
-                    const borderColor = isDenylist ? 'border-l-[4px] border-red-500' : 
-                                      isAdBlock ? 'border-l-[4px] border-orange-500' : 
-                                      'border-l-[4px] border-blue-500';
-                    const bgColor = isDenylist ? 'bg-red-50/30 dark:bg-red-950/5' : 
-                                  isAdBlock ? 'bg-orange-50/30 dark:bg-orange-950/5' : 
-                                  'bg-blue-50/30 dark:bg-blue-950/5';
-                    
+                    const isDenylist = item.reason.toLowerCase().includes('denylist') ||
+                      item.reason.toLowerCase().includes('blocked by you') ||
+                      item.reason.toLowerCase().includes('parental');
+                    const isAdBlock = item.reason.toLowerCase().includes('ad') ||
+                      item.reason.toLowerCase().includes('tracker');
+
+                    const borderColor = isDenylist ? 'border-l-[4px] border-red-500' :
+                      isAdBlock ? 'border-l-[4px] border-orange-500' :
+                        'border-l-[4px] border-blue-500';
+                    const bgColor = isDenylist ? 'bg-red-50/30 dark:bg-red-950/5' :
+                      isAdBlock ? 'bg-orange-50/30 dark:bg-orange-950/5' :
+                        'bg-blue-50/30 dark:bg-blue-950/5';
+
                     const { display, original } = extractSiteName({ domain });
-                    
+
                     return (
                       <div key={`${item.reason}-${idx}`} className={`rounded-lg ${bgColor} overflow-hidden`}>
                         <div className="px-4 py-3">
@@ -696,7 +688,7 @@ const ParentAnalyticsDashboard = () => {
             </div>
           )}
         </div>
-        </div>
+      </div>
 
       {/* RECENT ACTIVITY */}
       <div className="space-y-4">
@@ -728,11 +720,11 @@ const ParentAnalyticsDashboard = () => {
             {['today', 'yesterday', 'older'].map(day => {
               const logs = filteredGroupedLogs[day] || [];
               if (logs.length === 0) return null;
-              
+
               const dayLabel = day === 'today' ? 'Today' : day === 'yesterday' ? 'Yesterday' : 'Older';
               const displayedLogs = logs.slice(0, activityPage * ACTIVITIES_PER_PAGE);
               const hasMore = logs.length > displayedLogs.length;
-              
+
               return (
                 <div key={day}>
                   <button
@@ -743,9 +735,8 @@ const ParentAnalyticsDashboard = () => {
                       📅 {dayLabel} ({logs.length} {logs.length === 1 ? 'activity' : 'activities'})
                     </span>
                     <ChevronDown
-                      className={`h-4 w-4 transition-transform ${
-                        expandedDays.includes(day) ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 transition-transform ${expandedDays.includes(day) ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
 
@@ -764,13 +755,13 @@ const ParentAnalyticsDashboard = () => {
                             })}
                           </span>
                           <span className="flex-1 text-sm font-medium truncate">{log.domain}</span>
-                      {log.status === 'default' 
-                ? <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                : <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              }
+                          {log.status === 'default'
+                            ? <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                            : <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                          }
                         </div>
                       ))}
-                      
+
                       {hasMore && (
                         <div className="flex justify-center pt-3">
                           <Button
@@ -798,7 +789,7 @@ const ParentAnalyticsDashboard = () => {
           </div>
         </div>
       </div>
-      
+
       <DNSSetupDialog
         open={showDNSSetup}
         onOpenChange={setShowDNSSetup}

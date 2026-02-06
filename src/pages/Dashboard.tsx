@@ -1,13 +1,15 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Shield, BarChart3, Users, Lock, Eye, Settings, List, MoreHorizontal, CreditCard, MessageSquare, ChevronRight } from "lucide-react";
+import { Shield, BarChart3, Users, Lock, Eye, Settings, List, MoreHorizontal, CreditCard, MessageSquare, ChevronRight, ChevronLeft } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import TopBar from "@/components/dashboard/TopBar";
+import { cn } from "@/lib/utils";
 import { FeedbackModal } from "@/components/feedback/FeedbackModal";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import SafeariFullLogo from "@/assets/logofull.svg";
+import SafeariIcon from "@/assets/favicon.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,27 +24,27 @@ import { GlobalNav } from "@/components/navigation/GlobalNav";
 // Navigation configuration with tier-based feature flags
 const getNavItems = (tier: string = 'free') => {
   const baseItems = [
-    { 
-      icon: BarChart3, 
-      label: "Analytics", 
+    {
+      icon: Users,
+      label: "Parental",
       href: "/dashboard",
       available: true
     },
-    { 
-      icon: Users, 
-      label: "Parental", 
-      href: "/dashboard/parental",
+    {
+      icon: BarChart3,
+      label: "Analytics",
+      href: "/dashboard/analytics",
       available: true
     },
-    { 
-      icon: Shield, 
-      label: "Security", 
+    {
+      icon: Shield,
+      label: "Security",
       href: "/dashboard/security",
       available: true
     },
-    { 
-      icon: Eye, 
-      label: "Privacy", 
+    {
+      icon: Eye,
+      label: "Privacy",
       href: "/dashboard/privacy",
       available: true
     },
@@ -53,9 +55,9 @@ const getNavItems = (tier: string = 'free') => {
       icon: List,
       label: "Lists",
       href: "/dashboard/lists",
-      available:true
+      available: true
     },
-     {
+    {
       icon: CreditCard,
       label: "Usage & Billing",
       href: "/dashboard/usage-billing",
@@ -99,7 +101,7 @@ const DashboardSkeleton = () => (
           <Skeleton className="h-8 w-8 rounded-full" />
         </div>
       </header>
-      
+
       <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
         <div className="space-y-6">
           <Skeleton className="h-8 w-64" />
@@ -180,11 +182,11 @@ const NoProfilesEmptyState = () => {
                 Create Your Child's Profile
               </Link>
             </Button>
-            
+
             {/* Secondary action */}
             <p className="text-sm text-muted-foreground">
               Need help getting started?{" "}
-              <button 
+              <button
                 onClick={() => setFeedbackModalOpen(true)}
                 className="text-primary hover:underline font-medium"
               >
@@ -245,11 +247,10 @@ const MobileBottomNav = ({ items, onFeedbackClick }: { items: any[], onFeedbackC
             <Link
               key={item.href}
               to={item.href}
-              className={`flex flex-col items-center justify-center py-2 px-1 transition-colors ${
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex flex-col items-center justify-center py-2 px-1 transition-colors ${isActive
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
             >
@@ -287,9 +288,8 @@ const MobileBottomNav = ({ items, onFeedbackClick }: { items: any[], onFeedbackC
                   <DropdownMenuItem key={item.href} asChild>
                     <Link
                       to={item.href}
-                      className={`flex items-center gap-2 w-full ${
-                        isActive ? "text-primary" : ""
-                      }`}
+                      className={`flex items-center gap-2 w-full ${isActive ? "text-primary" : ""
+                        }`}
                     >
                       <item.icon className="h-4 w-4" />
                       {item.label}
@@ -312,6 +312,14 @@ const Dashboard = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [hasProfilesData, setHasProfilesData] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar_collapsed') === 'true';
+  });
+
+  // Persist sidebar state
+  useEffect(() => {
+    localStorage.setItem('sidebar_collapsed', sidebarCollapsed.toString());
+  }, [sidebarCollapsed]);
 
   // Onboarding tour - simplified to 2 essential steps
   const dashboardTour = useOnboardingTour({
@@ -368,19 +376,48 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background w-full flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex lg:flex-col lg:w-64 border-r bg-card">
-          <div className="p-6 border-b">
-            <Link to="/" className="flex items-center justify-center group transition-transform hover:scale-105 duration-300">
-              <img src={SafeariFullLogo} alt="Safeari" className="h-8 w-auto" />
-            </Link>
+        <aside className={cn(
+          "hidden lg:flex lg:flex-col border-r bg-card transition-all duration-300 ease-in-out relative",
+          sidebarCollapsed ? "w-20" : "w-64"
+        )}>
+          <div className={cn(
+            "p-6 border-b flex items-center",
+            sidebarCollapsed ? "justify-center px-4" : "justify-between"
+          )}>
+            {!sidebarCollapsed && (
+              <Link to="/" className="flex items-center group transition-transform hover:scale-105 duration-300">
+                <img src={SafeariFullLogo} alt="Safeari" className="h-11 w-auto" />
+              </Link>
+            )}
+            {sidebarCollapsed && (
+              <Link to="/" className="flex items-center justify-center group transition-transform hover:scale-110 duration-300">
+                <div className="h-10 w-10 flex items-center justify-center">
+                  <img src={SafeariIcon} alt="Safeari" className="h-8 w-8 object-contain" />
+                </div>
+              </Link>
+            )}
           </div>
-          <DashboardNav items={navItems} onFeedbackClick={() => setFeedbackModalOpen(true)} />
+          <DashboardNav
+            items={navItems}
+            onFeedbackClick={() => setFeedbackModalOpen(true)}
+            isCollapsed={sidebarCollapsed}
+          />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full border bg-background shadow-sm hover:bg-accent absolute -right-4 top-1/2 -translate-y-1/2 z-50 transition-all group-hover:scale-110"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
         </aside>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
           <TopBar />
-          
+
           <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 pb-20 lg:pb-8">
             {/* Show subtle loading indicator instead of full skeleton */}
             <div className="flex justify-center mb-4">
@@ -403,19 +440,48 @@ const Dashboard = () => {
     <>
       <div className="min-h-screen bg-background w-full flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex lg:flex-col lg:w-64 border-r bg-card relative" id="dashboard-sidebar">
-          <div className="p-6 border-b">
-            <Link to="/" className="flex items-center justify-center group transition-transform hover:scale-105 duration-300">
-              <img src={SafeariFullLogo} alt="Safeari" className="h-8 w-auto" />
-            </Link>
+        <aside className={cn(
+          "hidden lg:flex lg:flex-col border-r bg-card transition-all duration-300 ease-in-out relative",
+          sidebarCollapsed ? "w-20" : "w-64"
+        )} id="dashboard-sidebar">
+          <div className={cn(
+            "p-6 border-b flex items-center",
+            sidebarCollapsed ? "justify-center px-4" : "justify-between"
+          )}>
+            {!sidebarCollapsed && (
+              <Link to="/" className="flex items-center group transition-transform hover:scale-105 duration-300">
+                <img src={SafeariFullLogo} alt="Safeari" className="h-11 w-auto" />
+              </Link>
+            )}
+            {sidebarCollapsed && (
+              <Link to="/" className="flex items-center justify-center group transition-transform hover:scale-110 duration-300">
+                <div className="h-10 w-10 flex items-center justify-center">
+                  <img src={SafeariIcon} alt="Safeari" className="h-8 w-8 object-contain" />
+                </div>
+              </Link>
+            )}
           </div>
-          <DashboardNav items={navItems} onFeedbackClick={() => setFeedbackModalOpen(true)} />
+          <DashboardNav
+            items={navItems}
+            onFeedbackClick={() => setFeedbackModalOpen(true)}
+            isCollapsed={sidebarCollapsed}
+          />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full border bg-background shadow-sm hover:bg-accent absolute -right-4 top-1/2 -translate-y-1/2 z-50 transition-all hover:scale-110"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
         </aside>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
           <TopBar />
-          
+
           <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 pb-20 lg:pb-8">
             {/* Welcome tour tooltip */}
             {dashboardTour.isActive && dashboardTour.currentStep === 1 && (

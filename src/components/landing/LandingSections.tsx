@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  Shield, Check, ArrowRight, MessageCircle, Phone, Mail
+  Shield, Check, ArrowRight, MessageCircle, Phone, Mail, Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
@@ -14,13 +14,13 @@ import {
 import SafeariIconLogo from "@/assets/favicon.svg";
 import { TierCard } from "@/components/subscription/TierCard";
 import { WhatsAppCTA, WHATSAPP_LINK } from "@/components/feedback/WhatsAppCTA";
-import { 
-  WHY_CARDS, 
-  SETUP_STEPS, 
-  FEATURES, 
-  COMPARISON_ROWS, 
+import {
+  WHY_CARDS,
+  SETUP_STEPS,
+  FEATURES,
+  COMPARISON_ROWS,
   FAQS,
-  FINAL_CTA_BENEFITS 
+  FINAL_CTA_BENEFITS
 } from "./landingData";
 import { SetupStep, FeatureCard, InfoCard, ContactCard, useFadeIn } from "./LandingComponents";
 
@@ -31,7 +31,7 @@ interface SectionHeaderProps {
 }
 
 const SectionHeader = ({ badge, title, subtitle }: SectionHeaderProps) => (
-  <div className="text-center space-y-3 md:space-y-4 mb-12 md:mb-16">
+  <div className="text-center space-y-4 md:space-y-4 mb-16 md:mb-16">
     {badge && (
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
         <badge.icon className="h-4 w-4 text-primary" />
@@ -57,7 +57,7 @@ export const WhySection = () => {
           subtitle="Not just another app blocker. Safeari protects at the internet level—before harmful content even reaches your family's devices."
         />
 
-        <div className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+        <div className="grid gap-8 md:gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
           {WHY_CARDS.map((card, index) => (
             <InfoCard key={index} {...card} />
           ))}
@@ -69,7 +69,7 @@ export const WhySection = () => {
 
 export const SetupSection = () => {
   const setupRef = useFadeIn();
-  
+
   return (
     <section id="setup" ref={setupRef} className="py-16 md:py-24 border-t bg-muted/30 px-4 md:px-6">
       <div className="container">
@@ -89,7 +89,7 @@ export const SetupSection = () => {
 
 export const FeaturesSection = () => {
   const featuresRef = useFadeIn();
-  
+
   return (
     <section id="features" ref={featuresRef} className="py-20 bg-muted/20 border-t">
       <div className="container text-center space-y-14">
@@ -110,7 +110,7 @@ export const FeaturesSection = () => {
 
 export const PricingSection = ({ tiers, tiersLoading, handleTierSelect }) => {
   const pricingRef = useFadeIn();
-  
+
   return (
     <section id="pricing" ref={pricingRef} className="py-16 md:py-24 border-t bg-background/95 backdrop-blur-md px-4 md:px-6">
       <div className="container text-center space-y-10 md:space-y-14">
@@ -129,7 +129,7 @@ export const PricingSection = ({ tiers, tiersLoading, handleTierSelect }) => {
             Prices are shown in USD. Final amount will be calculated in your local currency at checkout.
           </p>
         </div>
-        
+
         {tiersLoading ? (
           <div className="flex justify-center py-12">
             <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -147,7 +147,7 @@ export const PricingSection = ({ tiers, tiersLoading, handleTierSelect }) => {
             ))}
           </div>
         )}
-        
+
         <p className="text-sm text-muted-foreground mt-2 text-primary/80">
           That's less than your child's daily lunch money 🍔
         </p>
@@ -185,11 +185,11 @@ export const ComparisonSection = () => {
                 <th className="text-center p-4 md:p-6 font-semibold text-sm md:text-base">
                   <div className="flex flex-col items-center gap-2">
                     <img src={SafeariIconLogo} alt="" className="h-8 w-8" />
-                    <span className="text-primary">Safeari<br/>(Internet-Level)</span>
+                    <span className="text-primary">Safeari<br />(Internet-Level)</span>
                   </div>
                 </th>
-                <th className="text-center p-4 md:p-6 font-semibold text-xs md:text-sm text-muted-foreground">Browser<br/>Extensions</th>
-                <th className="text-center p-4 md:p-6 font-semibold text-xs md:text-sm text-muted-foreground">Device-Level<br/>Apps</th>
+                <th className="text-center p-4 md:p-6 font-semibold text-xs md:text-sm text-muted-foreground">Browser<br />Extensions</th>
+                <th className="text-center p-4 md:p-6 font-semibold text-xs md:text-sm text-muted-foreground">Device-Level<br />Apps</th>
               </tr>
             </thead>
             <tbody className="text-sm md:text-base">
@@ -326,28 +326,17 @@ export const ContactSection = () => {
           ))}
         </div>
 
-        <Card className="bg-primary/5 border-2 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <p className="text-base font-semibold">Need help with setup?</p>
-              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-                Our step-by-step guides work for 95% of users, but if you get stuck, we're here. Don't spend hours troubleshooting—reach out and we'll walk you through it.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                <a href="#setup">
-                  <Button variant="outline" size="sm">
-                    View Setup Guides
-                  </Button>
-                </a>
-                <a href="#faq">
-                  <Button variant="outline" size="sm">
-                    Browse FAQ
-                  </Button>
-                </a>
-              </div>
+        <div className="rounded-xl bg-primary/5 border border-primary/20 p-6 md:p-8">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-2 text-primary">
+              <Info className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">Need Help?</h3>
             </div>
-          </CardContent>
-        </Card>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Our team is here to assist you. Whether you have questions about setup, features, or billing, we're just a message away.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -365,43 +354,41 @@ export const FinalCTASection = ({ isAuthenticated }) => {
           </p>
         </div>
 
-        <Card className="max-w-2xl mx-auto bg-card/80 backdrop-blur-sm border-2">
-          <CardContent className="pt-8 pb-8 space-y-6">
-            <div className="grid gap-4 text-sm md:text-base text-left">
-              {FINAL_CTA_BENEFITS.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <p>
-                    <strong>{benefit.text}</strong>{benefit.suffix}
-                  </p>
-                </div>
-              ))}
-            </div>
+        <div className="max-w-2xl mx-auto rounded-xl bg-card/80 backdrop-blur-sm p-8 space-y-6">
+          <div className="space-y-4">
+            {FINAL_CTA_BENEFITS.map((benefit, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <p>
+                  <strong>{benefit.text}</strong>{benefit.suffix}
+                </p>
+              </div>
+            ))}
+          </div>
 
-            <div className="pt-4">
-              {isAuthenticated ? (
-                <Link to="/dashboard" className="inline-block w-full sm:w-auto">
-                  <Button size="lg" className="h-14 px-10 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 w-full sm:w-auto text-base relative overflow-hidden group">
-                    <span className="relative z-10">Go to Dashboard</span>
-                    <ArrowRight className="ml-2 h-5 w-5 relative z-10" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/20 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link to="/register" className="inline-block w-full sm:w-auto">
-                  <Button size="lg" className="h-14 px-10 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 w-full sm:w-auto text-base relative overflow-hidden group">
-                    <span className="relative z-10">Start Protecting for Free</span>
-                    <ArrowRight className="ml-2 h-5 w-5 relative z-10" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/20 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                  </Button>
-                </Link>
-              )}
-              <p className="text-xs text-muted-foreground mt-4">
-                Takes less time than making a cup of coffee ☕
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="pt-4">
+            {isAuthenticated ? (
+              <Link to="/dashboard" className="inline-block w-full sm:w-auto">
+                <Button size="lg" className="h-14 px-10 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 w-full sm:w-auto text-base relative overflow-hidden group">
+                  <span className="relative z-10">Go to Dashboard</span>
+                  <ArrowRight className="ml-2 h-5 w-5 relative z-10" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/20 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/register" className="inline-block w-full sm:w-auto">
+                <Button size="lg" className="h-14 px-10 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 w-full sm:w-auto text-base relative overflow-hidden group">
+                  <span className="relative z-10">Start Protecting for Free</span>
+                  <ArrowRight className="ml-2 h-5 w-5 relative z-10" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/20 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                </Button>
+              </Link>
+            )}
+            <p className="text-xs text-muted-foreground mt-4">
+              Takes less time than making a cup of coffee ☕
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

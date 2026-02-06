@@ -2,6 +2,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface ToggleCardProps {
   id: string;
@@ -11,6 +12,7 @@ interface ToggleCardProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
+  className?: string;
 }
 
 /**
@@ -25,9 +27,13 @@ const ToggleCard = ({
   checked,
   onCheckedChange,
   disabled = false,
+  className,
 }: ToggleCardProps) => {
   return (
-    <div className="flex items-start justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+    <div className={cn(
+      "flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-all duration-200",
+      className
+    )}>
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2">
           <Label htmlFor={id} className="text-sm font-medium cursor-pointer">

@@ -42,67 +42,68 @@ const App = () => (
           <AuthProvider>
             <SubscriptionProvider>
               <ReferenceDataProvider>
-               <RateLimitProvider>
-              <ProfileProvider>
-             <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route
-                  path="/onboarding/subscription"
-                  element={
-                    <ProtectedRoute>
-                      <SubscriptionSelection />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/payment/callback"
-                  element={
-                    <ProtectedRoute>
-                      <PaymentCallback />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profiles"
-                  element={
-                    <ProtectedRoute>
-                      <Profiles />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/account/subscription"
-                  element={
-                    <ProtectedRoute>
-                      <AccountSubscription />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<AnalyticsDashboard />} />
-                  <Route path="parental" element={<ParentalControls />} />
-                  <Route path="security" element={<SecuritySettings />} />
-                  <Route path="privacy" element={<PrivacySettings />} />
-                  <Route path="lists" element={<CustomLists />} />
-                  <Route path="usage-billing" element={<UsageBilling />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              </ProfileProvider>
-              </RateLimitProvider>
+                <RateLimitProvider>
+                  <ProfileProvider>
+                    <Routes>
+                      <Route path="/" element={<Landing />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route
+                        path="/onboarding/subscription"
+                        element={
+                          <ProtectedRoute>
+                            <SubscriptionSelection />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/payment/callback"
+                        element={
+                          <ProtectedRoute>
+                            <PaymentCallback />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/profiles"
+                        element={
+                          <ProtectedRoute>
+                            <Profiles />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/account/subscription"
+                        element={
+                          <ProtectedRoute>
+                            <AccountSubscription />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/dashboard"
+                        element={
+                          <ProtectedRoute>
+                            <Dashboard />
+                          </ProtectedRoute>
+                        }
+                      >
+                        <Route index element={<ParentalControls />} />
+                        <Route path="analytics" element={<AnalyticsDashboard />} />
+                        <Route path="parental" element={<ParentalControls />} />
+                        <Route path="security" element={<SecuritySettings />} />
+                        <Route path="privacy" element={<PrivacySettings />} />
+                        <Route path="lists" element={<CustomLists />} />
+                        <Route path="usage-billing" element={<UsageBilling />} />
+                        <Route path="settings" element={<Settings />} />
+                      </Route>
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </ProfileProvider>
+                </RateLimitProvider>
               </ReferenceDataProvider>
             </SubscriptionProvider>
           </AuthProvider>

@@ -28,14 +28,14 @@ interface NavLinksProps {
 }
 
 const NavLinks = ({ activeSection, isMobile = false, onItemClick }: NavLinksProps) => {
-  const baseClassName = isMobile 
+  const baseClassName = isMobile
     ? "block text-base font-medium py-3 px-4 rounded-lg transition-colors duration-200"
     : "text-sm font-medium px-3 py-2 rounded-lg transition-colors duration-200";
-    
+
   const activeClassName = isMobile
     ? "text-primary bg-primary/10"
     : "text-primary bg-primary/10";
-    
+
   const hoverClassName = "hover:text-primary hover:bg-primary/5";
 
   return (
@@ -62,18 +62,18 @@ interface AuthButtonsProps {
 
 const AuthButtons = ({ isAuthenticated, isMobile = false, onItemClick }: AuthButtonsProps) => {
   const buttonSize = isMobile ? "lg" : "sm";
-  const containerClass = isMobile 
+  const containerClass = isMobile
     ? "pt-6 border-t border-border/40 space-y-3 w-full"
     : "";
-    
+
   const buttonClass = isMobile ? "w-full" : "";
 
   if (isAuthenticated) {
     return (
       <div className={containerClass}>
         <Link to="/dashboard" onClick={onItemClick} className={isMobile ? "block" : ""}>
-          <Button 
-            size={buttonSize} 
+          <Button
+            size={buttonSize}
             className={`${buttonClass} bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 font-semibold shadow-md`}
           >
             Go to Dashboard
@@ -158,7 +158,7 @@ const Landing = () => {
       <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-lg shadow-sm" role="banner">
         <div className="container flex h-16 md:h-20 items-center justify-between px-4 md:px-6">
           <a href="#top" className="flex items-center gap-2 md:gap-3 group transition-transform hover:scale-105 duration-300">
-            <img src={SafeariLogo} alt="Safeari" className="h-8 w-8 md:h-10 md:w-10" />
+            <img src={SafeariLogo} alt="Safeari" className="h-14 w-14 md:h-16 md:w-16" />
             <span className="text-xl md:text-2xl font-bold text-primary">Safeari</span>
           </a>
 
@@ -168,8 +168,8 @@ const Landing = () => {
             <AuthButtons isAuthenticated={isAuthenticated} />
           </nav>
 
-          <button 
-            className="md:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors" 
+          <button
+            className="md:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
           >
@@ -181,9 +181,9 @@ const Landing = () => {
       {/* Simplified Mobile Menu - Side Drawer */}
       {menuOpen && (
         <>
-          <div 
-            className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity" 
-            onClick={() => setMenuOpen(false)} 
+          <div
+            className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity"
+            onClick={() => setMenuOpen(false)}
           />
           <div className="fixed top-0 right-0 bottom-0 w-[280px] z-50 bg-background border-l border-border shadow-2xl md:hidden overflow-y-auto">
             <div className="flex flex-col h-full">
@@ -193,15 +193,15 @@ const Landing = () => {
                   <img src={SafeariLogo} alt="Safeari" className="h-7 w-7" />
                   <span className="text-lg font-bold text-primary">Safeari</span>
                 </div>
-                <button 
-                  className="p-2 rounded-lg hover:bg-primary/10 transition-colors" 
+                <button
+                  className="p-2 rounded-lg hover:bg-primary/10 transition-colors"
                   onClick={() => setMenuOpen(false)}
                   aria-label="Close menu"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               {/* Navigation Links */}
               <nav className="flex-1 p-4 space-y-1">
                 <NavLinks activeSection={activeSection} isMobile onItemClick={() => setMenuOpen(false)} />
@@ -281,8 +281,8 @@ const Landing = () => {
 
               {/* Quick Link to Pricing */}
               <div className="flex items-center justify-center lg:justify-start gap-4 pt-2">
-                <a 
-                  href="#pricing" 
+                <a
+                  href="#pricing"
                   className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
                 >
                   <Zap className="h-4 w-4 group-hover:scale-110 transition-transform" />
@@ -310,10 +310,10 @@ const Landing = () => {
         <WhySection />
         <SetupSection />
         <FeaturesSection />
-        <PricingSection 
-          tiers={tiers} 
-          tiersLoading={tiersLoading} 
-          handleTierSelect={handleTierSelect} 
+        <PricingSection
+          tiers={tiers}
+          tiersLoading={tiersLoading}
+          handleTierSelect={handleTierSelect}
         />
         <ComparisonSection />
         <FAQSection />

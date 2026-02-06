@@ -28,24 +28,23 @@ export const TierCard = ({
 }: TierCardProps) => {
   const isFree = tier.name.toLowerCase() === 'free';
   const maxFeatures = showAllFeatures ? tier.features.length : (compact ? 4 : 6);
-  
-  const defaultButtonText = isFree 
-    ? 'Get Started' 
-    : isRecommended 
-    ? 'Upgrade Now' 
-    : isCurrent 
-    ? 'Current Plan'
-    : 'Select Plan';
+
+  const defaultButtonText = isFree
+    ? 'Get Started'
+    : isRecommended
+      ? 'Upgrade Now'
+      : isCurrent
+        ? 'Current Plan'
+        : 'Select Plan';
 
   return (
     <Card
-      className={`relative group transition-all duration-300 ${
-        isCurrent 
-          ? 'border-primary/50 bg-primary/5' 
-          : isRecommended 
-          ? 'border-primary/60 shadow-lg hover:shadow-xl bg-gradient-to-br from-primary/5 via-background to-background scale-[1.01]' 
-          : 'hover:border-primary/20 hover:shadow-md hover:scale-[1.01]'
-      }`}
+      className={`relative group transition-all duration-300 ${isCurrent
+          ? 'border-primary/50 bg-primary/5'
+          : isRecommended
+            ? 'border-primary/60 shadow-lg hover:shadow-xl bg-gradient-to-br from-primary/5 via-background to-background scale-[1.01]'
+            : 'hover:border-primary/20 hover:shadow-md hover:scale-[1.01]'
+        }`}
     >
       {isRecommended && !isCurrent && (
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
@@ -54,14 +53,14 @@ export const TierCard = ({
           </Badge>
         </div>
       )}
-      
+
       {isCurrent && (
         <div className="absolute -top-2 right-2 z-10">
           <Badge className="text-[10px] px-2 py-0.5 bg-primary">Current</Badge>
         </div>
       )}
 
-      <CardHeader className={`space-y-2 ${compact ? 'pb-3 pt-4' : 'pb-4'}`}>
+      <CardHeader className={`space-y-2 ${compact ? 'pb-3 pt-4 px-4' : 'pb-4 px-5 md:px-6'}`}>
         <CardTitle className={compact ? 'text-base sm:text-lg' : 'text-lg sm:text-xl font-bold'}>
           {tier.name}
         </CardTitle>
@@ -71,18 +70,18 @@ export const TierCard = ({
           </span>
           <span className="text-sm text-muted-foreground">/month</span>
         </div>
-        
+
         <CardDescription className="text-xs">
           {tier.max_profiles === -1 ? 'Unlimited' : tier.max_profiles} profile{tier.max_profiles !== 1 && 's'} • {tier.analytics_retention}d analytics
         </CardDescription>
       </CardHeader>
 
-      <CardContent className={`space-y-4 ${compact ? 'pb-3' : ''}`}>
+      <CardContent className={`space-y-4 ${compact ? 'pb-3 px-4' : 'px-5 md:px-6'}`}>
         {!isCurrent && (
           <Button
             onClick={() => onSelect(tier)}
             className={`w-full font-medium text-sm ${compact ? 'h-8' : 'h-10'}`}
-            variant={isRecommended ? 'default' : 'ghost'}
+            variant={isRecommended ? 'default' : 'outline'}
             size="default"
             disabled={isLoading}
           >
@@ -100,7 +99,7 @@ export const TierCard = ({
           </Button>
         )}
 
-        <ul className="space-y-2.5">
+        <ul className="space-y-3 md:space-y-2.5">
           {tier.features.slice(0, maxFeatures).map((feature, index) => (
             <li key={index} className="flex items-start gap-2">
               <div className="flex-shrink-0 mt-0.5">

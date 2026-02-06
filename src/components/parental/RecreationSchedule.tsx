@@ -16,9 +16,10 @@ type WeekSchedule = Record<string, DaySchedule>;
 
 interface RecreationScheduleProps {
   onScheduleChange?: (hasSchedule: boolean) => void;
+  hideHeader?: boolean;
 }
 
-const RecreationSchedule = ({ onScheduleChange }: RecreationScheduleProps) => {
+const RecreationSchedule = ({ onScheduleChange, hideHeader = false }: RecreationScheduleProps) => {
   const { currentProfile } = useProfile();
   const { toast } = useToast();
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -291,13 +292,6 @@ const RecreationSchedule = ({ onScheduleChange }: RecreationScheduleProps) => {
 
   return (
     <div className="space-y-6">
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          Set when internet access is allowed. Then enable "Allow During Screen Time" on specific services/categories above to permit them only during these hours. <strong>Custom Lists bypass screen time entirely.</strong>
-        </AlertDescription>
-      </Alert>
-
       {/* Presets */}
       <div className="space-y-3">
         <Label className="text-base font-semibold">Quick Presets</Label>
@@ -306,11 +300,10 @@ const RecreationSchedule = ({ onScheduleChange }: RecreationScheduleProps) => {
             <button
               key={key}
               onClick={() => applyPreset(key as keyof typeof PRESETS)}
-              className={`p-4 rounded-lg border-2 transition-all text-left ${
-                selectedPreset === key
-                  ? "border-primary bg-primary/10 shadow-sm"
-                  : "border-border hover:border-primary/40 hover:bg-accent/50"
-              }`}
+              className={`p-4 rounded-lg border-2 transition-all text-left ${selectedPreset === key
+                ? "border-primary bg-primary/10 shadow-sm"
+                : "border-border hover:border-primary/40 hover:bg-accent/50"
+                }`}
             >
               <Icon className={`h-5 w-5 mb-2 ${selectedPreset === key ? "text-primary" : "text-muted-foreground"}`} />
               <div className="font-medium text-sm mb-1">{name}</div>
@@ -425,10 +418,10 @@ const RecreationSchedule = ({ onScheduleChange }: RecreationScheduleProps) => {
               </Card>
             );
           })}
-        </div>
-      </div>
+        </div >
+      </div >
 
-    </div>
+    </div >
   );
 };
 

@@ -27,16 +27,15 @@ interface InfoCardProps {
 }
 
 export const InfoCard = ({ icon: Icon, title, description, glowColor = "from-primary/5" }: InfoCardProps) => (
-  <Card className="group relative border-2 hover:border-primary/40 bg-card backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 overflow-hidden">
-    <div className={`absolute inset-0 bg-gradient-to-br ${glowColor} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-    <CardHeader className="relative z-10 space-y-4">
-      <div className={`h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300`}>
+  <div className="group relative rounded-xl bg-card/50 backdrop-blur-sm p-6 transition-all duration-300 hover:bg-card hover:-translate-y-1">
+    <div className="space-y-4">
+      <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
         <Icon className="h-7 w-7 text-primary" />
       </div>
-      <CardTitle className="text-xl">{title}</CardTitle>
-      <CardDescription className="text-base leading-relaxed">{description}</CardDescription>
-    </CardHeader>
-  </Card>
+      <h3 className="text-xl font-semibold">{title}</h3>
+      <p className="text-base leading-relaxed text-muted-foreground">{description}</p>
+    </div>
+  </div>
 );
 
 interface SetupStepProps {
@@ -47,31 +46,17 @@ interface SetupStepProps {
 }
 
 export const SetupStep = ({ number, title, description, Icon }: SetupStepProps) => (
-  <Card className="group relative border-2 hover:border-primary/40 bg-card backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-    <div className="relative h-48 md:h-56 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border-b overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
-      <div className="relative z-10 flex flex-col items-center gap-4">
-        <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center shadow-lg backdrop-blur-sm border border-primary/20">
-          <Icon className="h-10 w-10 text-primary" />
-        </div>
-        <p className="text-xs font-medium text-muted-foreground px-4 text-center">
-          Simple {number}-minute setup
-        </p>
+  <div className="group relative rounded-xl bg-card/50 backdrop-blur-sm p-6 transition-all duration-300 hover:bg-card">
+    <div className="flex items-start gap-4">
+      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+        <span className="font-bold text-primary text-lg">{number}</span>
+      </div>
+      <div className="space-y-2 flex-1">
+        <h3 className="text-lg md:text-xl font-semibold">{title}</h3>
+        <p className="text-sm md:text-base leading-relaxed text-muted-foreground">{description}</p>
       </div>
     </div>
-    <CardHeader className="relative z-10 space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-sm border border-primary/20">
-          <span className="font-bold text-primary text-lg">{number}</span>
-        </div>
-        <CardTitle className="text-lg md:text-xl group-hover:text-primary transition-colors duration-300">{title}</CardTitle>
-      </div>
-      <CardDescription className="text-sm md:text-base leading-relaxed">
-        {description}
-      </CardDescription>
-    </CardHeader>
-  </Card>
+  </div>
 );
 
 interface FeatureCardProps {
@@ -127,20 +112,20 @@ interface ContactCardProps {
   isExternal?: boolean;
 }
 
-export const ContactCard = ({ 
-  icon: Icon, 
-  title, 
-  description, 
-  buttonText, 
-  buttonHref, 
+export const ContactCard = ({
+  icon: Icon,
+  title,
+  description,
+  buttonText,
+  buttonHref,
   buttonVariant = "outline",
   buttonClassName = "",
   glowColor = "from-primary/5",
   isExternal = false
 }: ContactCardProps) => {
   const Button = ({ children, className }: { children: React.ReactNode; className: string }) => (
-    <a 
-      href={buttonHref} 
+    <a
+      href={buttonHref}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
       className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 w-full ${className}`}
@@ -150,21 +135,20 @@ export const ContactCard = ({
   );
 
   return (
-    <Card className="group relative border-2 hover:border-primary/40 bg-card backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 overflow-hidden">
-      <div className={`absolute inset-0 bg-gradient-to-br ${glowColor} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-      <CardHeader className="relative z-10 space-y-4 text-center">
-        <div className={`mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300`}>
+    <div className="group relative rounded-xl bg-card/50 backdrop-blur-sm p-6 text-center transition-all duration-300 hover:bg-card hover:-translate-y-1">
+      <div className="space-y-4">
+        <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
           <Icon className="h-8 w-8 text-primary" />
         </div>
         <div className="space-y-2">
-          <CardTitle className="text-xl">{title}</CardTitle>
-          <CardDescription className="text-sm leading-relaxed">{description}</CardDescription>
+          <h3 className="text-xl font-semibold">{title}</h3>
+          <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
         </div>
         <Button className={buttonVariant === "default" ? `bg-primary text-primary-foreground hover:bg-primary/90 ${buttonClassName}` : `border-2 hover:border-primary hover:bg-primary/5 ${buttonClassName}`}>
           {buttonText}
           <Icon className="ml-2 h-4 w-4" />
         </Button>
-      </CardHeader>
-    </Card>
+      </div>
+    </div>
   );
 };

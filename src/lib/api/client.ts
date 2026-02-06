@@ -31,17 +31,16 @@ class APIClient {
     // Request interceptor - add auth token to all requests except auth endpoints
     this.client.interceptors.request.use(
       (config) => {
-        console.log(`[API REQ] ${config.method?.toUpperCase()} ${config.url}`);
         const isAuthEndpoint = config.url?.includes('/auth/login') ||
-                               config.url?.includes('/auth/register') ||
-                               config.url?.includes('/auth/refresh') ||
-                               config.url?.includes('/auth/verify_callback');
+          config.url?.includes('/auth/register') ||
+          config.url?.includes('/auth/refresh') ||
+          config.url?.includes('/auth/verify_callback');
 
         if (!isAuthEndpoint) {
           const token = localStorage.getItem('access_token');
           if (token) {
             config.headers.Authorization = `Bearer ${token}`;
-          }else{
+          } else {
             console.warn('[API REQ] No access token found');
           }
         }
@@ -49,49 +48,45 @@ class APIClient {
       },
       // (error) => Promise.reject(error)
       (error) => {
-      console.error('[API REQ ERROR]', error);
-      return Promise.reject(error);
-    }
+        console.error('[API REQ ERROR]', error);
+        return Promise.reject(error);
+      }
     );
 
     // Response interceptor - handle token refresh on 401
     this.client.interceptors.response.use(
       // (response: AxiosResponse) => response,
       (response: AxiosResponse) => {
-      console.log(`[API RES] ${response.config.url} - ${response.status}`);
-      return response;
-    },
+        return response;
+      },
 
       async (error: AxiosError) => {
-        const errorType = error.code === 'ECONNABORTED' ? 'TIMEOUT' : 
-                    error.code === 'ERR_CANCELED' ? 'CANCELED' : 
-                    error.response?.status || 'NETWORK_ERROR';
-         console.error(`[API RES ERROR] ${error.config?.url} - ${errorType}`);
+        const errorType = error.code === 'ECONNABORTED' ? 'TIMEOUT' :
+          error.code === 'ERR_CANCELED' ? 'CANCELED' :
+            error.response?.status || 'NETWORK_ERROR';
+        console.error(`[API RES ERROR] ${error.config?.url} - ${errorType}`);
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
         // Handle 429 Rate Limit - Show upgrade modal
         if (error.response?.status === 429) {
-          console.log('[API] Rate limit hit - triggering upgrade modal');
           const errorData = error.response?.data as any;
           const feature = errorData?.feature || 'API Requests';
           const currentTier = errorData?.current_tier || 'free';
           const requiredTier = errorData?.required_tier || 'basic';
-          
+
           if (globalRateLimitHandler) {
             globalRateLimitHandler(feature, currentTier, requiredTier);
           }
-          
+
           return Promise.reject(error);
         }
 
         // Only attempt refresh for 401 errors, not on refresh endpoint itself
         const isRefreshEndpoint = originalRequest?.url?.includes('/auth/refresh');
-        
+
         if ((error.response?.status === 401 || error.response?.status === 403) && originalRequest && !originalRequest._retry && !isRefreshEndpoint) {
-          console.log('[API] Attempting token refresh...');
-          
+
           if (this.isRefreshing) {
-            console.log('[API] Already refreshing, queuing request');
             // Queue this request to retry after refresh completes
             return new Promise((resolve) => {
               this.refreshSubscribers.push((token: string) => {
@@ -106,7 +101,7 @@ class APIClient {
 
           try {
             const refreshToken = localStorage.getItem('refresh_token');
-            
+
             if (!refreshToken) {
               throw new Error('No refresh token available');
             }
@@ -115,9 +110,9 @@ class APIClient {
             const response = await axios.post(
               `${this.baseURL}/api/v1/auth/refresh/`,
               { refresh_token: refreshToken },
-              { 
+              {
                 headers: { 'Content-Type': 'application/json' },
-                timeout: 10000 
+                timeout: 10000
               }
             );
 
@@ -144,12 +139,12 @@ class APIClient {
             // Refresh failed - clear tokens and redirect to login
             this.refreshSubscribers = [];
             this.clearAuthTokens();
-            
+
             // Only redirect if in browser environment
             if (typeof window !== 'undefined') {
               window.location.href = '/login';
             }
-            
+
             return Promise.reject(refreshError);
           } finally {
             this.isRefreshing = false;

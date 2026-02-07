@@ -340,7 +340,7 @@ const SecuritySettings = () => {
         </div>
       </SeamlessSection>
 
-      <div className="fixed bottom-8 right-8 z-50">
+      <div className="fixed bottom-24 right-6 lg:bottom-8 lg:right-8 z-50">
         <Button
           onClick={handleSave}
           size="lg"

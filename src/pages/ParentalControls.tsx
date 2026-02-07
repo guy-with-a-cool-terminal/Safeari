@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   ChevronDown, Search, Lock, Crown, Clock, Info, ChevronUp,
-  Users, Video, Gamepad2, MessageCircle
+  Users, Video, Gamepad2, MessageCircle, Check, RefreshCw, Loader2
 } from "lucide-react";
 import BrandLogo from "@/components/parental/BrandLogo";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -585,16 +585,26 @@ const ParentalControls = () => {
           >
             Restore Defaults
           </Button>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Button
-              onClick={handleSave}
-              className="w-full sm:w-48 h-12 text-base font-semibold shadow-lg shadow-primary/20"
-              disabled={isLoading || updateMutation.isPending}
-            >
-              {updateMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
+          <div className="flex items-center gap-3 w-full sm:w-auto h-12">
+            {/* Empty space for alignment, save moved to floating */}
           </div>
         </div>
+      </div>
+
+      <div className="fixed bottom-24 right-6 lg:bottom-8 lg:right-8 z-50">
+        <Button
+          onClick={handleSave}
+          size="lg"
+          disabled={isLoading || updateMutation.isPending}
+          className="h-14 px-10 rounded-full font-bold shadow-2xl shadow-primary/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+        >
+          {updateMutation.isPending ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Check className="h-5 w-5" />
+          )}
+          {updateMutation.isPending ? "Saving..." : "Save Changes"}
+        </Button>
       </div>
 
       {/* Upgrade Modal */}

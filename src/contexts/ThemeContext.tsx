@@ -15,13 +15,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Check localStorage first
     const stored = localStorage.getItem("safeari-theme") as Theme | null;
     if (stored) return stored;
-    
-    // Then check system preference
-    if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-      return "light";
-    }
-    
-    return "dark";
+
+    // Default to light mode (Peaceful default)
+    return "light";
   });
 
   useEffect(() => {

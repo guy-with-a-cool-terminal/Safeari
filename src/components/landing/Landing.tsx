@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, ArrowRight, Zap, Shield } from "lucide-react";
+import { Menu, X, ArrowRight, Zap, Shield, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SafeariLogo from "@/assets/favicon.svg";
 import SafeariIconLogo from "@/assets/favicon.svg";
@@ -18,7 +18,9 @@ import {
   FAQSection,
   WhatsAppSection,
   ContactSection,
-  FinalCTASection
+  FinalCTASection,
+  SocialProofSection,
+  DemoSection
 } from "./LandingSections";
 
 interface NavLinksProps {
@@ -155,6 +157,7 @@ const Landing = () => {
       <ScrollToTop />
 
       {/* Header */}
+      {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-lg shadow-sm" role="banner">
         <div className="container flex h-16 md:h-20 items-center justify-between px-4 md:px-6">
           <a href="#top" className="flex items-center gap-2 md:gap-3 group transition-transform hover:scale-105 duration-300">
@@ -216,98 +219,113 @@ const Landing = () => {
         </>
       )}
 
-      {/* Hero Section - Refined */}
+      {/* Hero Section - Refined with Professional Mobile Background Optimization */}
       <main>
-        <section id="top" className="container py-16 md:py-24 lg:py-32 px-4 md:px-6" aria-labelledby="hero-heading">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div className="space-y-6 md:space-y-8 text-center lg:text-left">
-              {/* Trust Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mx-auto lg:mx-0">
-                <Shield className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Trusted by Kenyan families</span>
-              </div>
+        <section id="top" className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden" aria-labelledby="hero-heading">
+          {/* Extended Right-Side Glow */}
+          <div className="absolute top-1/2 right-[-10%] -translate-y-1/2 w-[50vw] h-[120%] bg-primary/20 blur-[120px] rounded-full pointer-events-none -z-10" />
 
-              {/* Main Headline - Shorter, Punchier */}
-              <h1 id="hero-heading" className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
-                Keep your kids safe online
-              </h1>
+          {/* Hero Background - High Visibility in All Modes */}
+          <div className="lg:hidden absolute inset-0 -z-10">
+            <img
+              src={heroDashboard}
+              alt=""
+              className="w-full h-full object-cover opacity-[0.18] dark:opacity-[0.45] saturate-[1.3] brightness-[1.05] dark:brightness-[0.9] transition-opacity duration-1000"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-background via-background/20 dark:via-background/40 to-background" />
+          </div>
 
-              {/* Subheadline - Less Fear, More Confidence */}
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                Block harmful content, manage screen time, and protect every device—phones, tablets, computers, even smart TVs. Set it once, protected forever.
-              </p>
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              <div className="space-y-6 md:space-y-8 text-center lg:text-left">
+                {/* Hero Hook */}
 
-              {/* Key Benefits - Scannable */}
-              <div className="flex flex-col gap-2 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-primary font-semibold">✓</span>
-                  <span>Works on all devices—no app to delete</span>
+                {/* Specific Daily struggle Hook - Non-slanting */}
+                <h1 id="hero-heading" className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
+                  Stop fighting about <br className="hidden md:block" />
+                  <span className="text-primary">TikTok & Social Media.</span>
+                </h1>
+
+                {/* Subheadline - Immediate Relief */}
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium opacity-90">
+                  Block specific apps, set healthy limits, and keep them safe from hidden threats—without the constant workarounds or fights. Setup in 5 minutes.
+                </p>
+
+                {/* Key Benefits - Scannable & Aggressive */}
+                <div className="flex flex-col gap-3 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-primary font-bold" />
+                    </div>
+                    <span><strong className="text-foreground">Impossible to bypass</strong> — blocks VPNs kids use to cheat</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-primary font-bold" />
+                    </div>
+                    <span><strong className="text-foreground">Universal protection</strong> — phones, tablets, smart TVs & consoles</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-primary font-bold" />
+                    </div>
+                    <span><strong className="text-foreground">Setup once, protected 24/7</strong> — in less than 5 minutes</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-primary font-semibold">✓</span>
-                  <span>Setup in 5 minutes, protected 24/7</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-primary font-semibold">✓</span>
-                  <span>Free plan available—no credit card needed</span>
-                </div>
-              </div>
 
-              {/* CTAs - Consistent Styling */}
-              <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 pt-4">
-                {isAuthenticated ? (
-                  <Link to="/dashboard" className="w-full sm:w-auto">
-                    <Button size="lg" className="h-14 px-8 font-semibold text-base rounded-lg shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 hover:shadow-xl transition-all duration-300 w-full">
-                      Go to Dashboard
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <>
-                    <Link to="/register" className="w-full sm:w-auto">
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 pt-4">
+                  {isAuthenticated ? (
+                    <Link to="/dashboard" className="w-full sm:w-auto">
                       <Button size="lg" className="h-14 px-8 font-semibold text-base rounded-lg shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 hover:shadow-xl transition-all duration-300 w-full">
-                        Start Protecting for Free
+                        Go to Dashboard
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
-                    <Link to="/login" className="w-full sm:w-auto">
-                      <Button size="lg" variant="outline" className="h-14 px-8 font-semibold text-base rounded-lg border-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-300 w-full">
-                        Sign In
-                      </Button>
-                    </Link>
-                  </>
-                )}
+                  ) : (
+                    <>
+                      <Link to="/register" className="w-full sm:w-auto">
+                        <Button size="lg" className="h-14 px-8 font-semibold text-base rounded-md shadow-md bg-primary hover:bg-primary/90 transition-all duration-200 w-full">
+                          Start Protecting for Free
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                      </Link>
+                      <Link to="/login" className="w-full sm:w-auto">
+                        <Button size="lg" variant="outline" className="h-14 px-8 font-semibold text-base rounded-md border-border text-foreground hover:bg-muted transition-all duration-200 w-full">
+                          Sign In
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+
               </div>
 
-              {/* Quick Link to Pricing */}
-              <div className="flex items-center justify-center lg:justify-start gap-4 pt-2">
-                <a
-                  href="#pricing"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
-                >
-                  <Zap className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  View Plans & Pricing
-                </a>
-              </div>
-            </div>
+              {/* Desktop Hero Image - Floating UI Window with Ambient Glow */}
+              <div className="relative hidden lg:block w-full max-w-xl lg:max-w-none mx-auto group pl-10 perspective-1000">
 
-            {/* Hero Image - Cleaner Presentation */}
-            <div className="relative w-full max-w-xl lg:max-w-none mx-auto">
-              <div className="absolute -inset-4 bg-gradient-to-tr from-primary/15 via-primary/5 to-transparent blur-3xl opacity-50" />
-              <div className="relative rounded-2xl overflow-hidden border-2 border-primary/20 shadow-2xl transform hover:scale-[1.02] transition-transform duration-500">
-                <img
-                  src={heroDashboard}
-                  alt="Child safely using a tablet with Safeari parental control protection"
-                  loading="eager"
-                  className="w-full h-auto object-cover"
-                />
+                {/* Soft Ambient Glow (Anchoring) */}
+                <div className="absolute -inset-10 bg-primary/30 blur-[120px] rounded-full opacity-40 animate-pulse-slow pointer-events-none" />
+
+                {/* Floating UI Container */}
+                <div className="relative rounded-2xl overflow-hidden shadow-3xl shadow-primary/20 transition-all duration-700 hover:scale-[1.01] hover:shadow-primary/30 bg-background transform rotate-y-[-2deg] hover:rotate-0">
+                  <img
+                    src={heroDashboard}
+                    alt="Safeari Dashboard Interface"
+                    loading="eager"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* All Other Sections */}
+        <SocialProofSection />
         <WhySection />
+        <DemoSection />
         <SetupSection />
         <FeaturesSection />
         <PricingSection
@@ -326,7 +344,7 @@ const Landing = () => {
       <footer className="border-t py-12 md:py-16 text-center text-muted-foreground bg-muted/5 px-4" role="contentinfo">
         <div className="container space-y-6">
           <div className="flex justify-center items-center mb-4">
-            <img src={SafeariLogo} alt="Safeari - Parental Control and Internet Safety" className="h-8 md:h-10 w-auto" />
+            <img src={SafeariLogo} alt="Safeari" className="h-8 md:h-10 w-auto" />
           </div>
           <p className="text-sm">© {new Date().getFullYear()} Safeari. All rights reserved.</p>
           <p className="text-sm text-muted-foreground/70">

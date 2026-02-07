@@ -39,11 +39,11 @@ export const TierCard = ({
 
   return (
     <Card
-      className={`relative group transition-all duration-300 ${isCurrent
-          ? 'border-primary/50 bg-primary/5'
-          : isRecommended
-            ? 'border-primary/60 shadow-lg hover:shadow-xl bg-gradient-to-br from-primary/5 via-background to-background scale-[1.01]'
-            : 'hover:border-primary/20 hover:shadow-md hover:scale-[1.01]'
+      className={`relative group transition-all duration-300 h-full flex flex-col ${isCurrent
+        ? 'border-primary ring-1 ring-primary/20 bg-primary/5 shadow-md'
+        : isRecommended
+          ? 'border-primary shadow-xl scale-[1.02] bg-card'
+          : 'border-border bg-card shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-1'
         }`}
     >
       {isRecommended && !isCurrent && (

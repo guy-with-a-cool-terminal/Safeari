@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { format } from 'date-fns';
 import type { OverviewResponse, LogEntry, TimelineData } from "@/lib/api/types";
 
 // PREVIEW DATA - Shown while waiting for real data
@@ -17,11 +18,11 @@ export const PREVIEW_DATA = {
   timeline: [
     {
       status: 'default',
-      queries: [0,0,0,0,0,0,45,89,156,234,189,98,67,45,178,267,312,389,245,156,89,67,234,189]
+      queries: [0, 0, 0, 0, 0, 0, 45, 89, 156, 234, 189, 98, 67, 45, 178, 267, 312, 389, 245, 156, 89, 67, 234, 189]
     },
     {
       status: 'blocked',
-      queries: [0,0,0,0,0,0,2,5,8,12,9,4,3,2,9,13,15,18,12,8,4,3,11,9]
+      queries: [0, 0, 0, 0, 0, 0, 2, 5, 8, 12, 9, 4, 3, 2, 9, 13, 15, 18, 12, 8, 4, 3, 11, 9]
     }
   ],
   domains: [
@@ -94,7 +95,7 @@ export interface ProtectionStatus {
 export interface BlockReason {
   reason: string;
   count: number;
-  domains: string[];
+  logs: LogEntry[];
 }
 
 export interface SiteInfo {
@@ -116,18 +117,18 @@ export function extractSiteName(log: { root?: string; domain: string }): { displ
     const display = mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
     return { display, original: log.root };
   }
-  
+
   // Fallback for domains without root
   const domain = log.domain;
   if (!domain) return { display: 'Unknown', original: domain };
-  
+
   const parts = domain.split('.');
   if (parts.length >= 2) {
     const mainPart = parts[parts.length - 2];
     const display = mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
     return { display, original: domain };
   }
-  
+
   return { display: domain, original: domain };
 }
 
@@ -151,8 +152,8 @@ export function calculateMetrics(overview: OverviewResponse | null): ProtectionM
  * Get protection status with color coding and messages
  */
 export function getProtectionStatus(
-  protectionRate: number, 
-  blocked: number, 
+  protectionRate: number,
+  blocked: number,
   profileName: string
 ): ProtectionStatus {
   if (blocked === 0) {
@@ -165,7 +166,7 @@ export function getProtectionStatus(
       description: `All of ${profileName}'s browsing activity was safe. No harmful content was encountered.`
     };
   }
-  
+
   if (protectionRate < 3) {
     return {
       color: 'bg-primary',
@@ -176,7 +177,7 @@ export function getProtectionStatus(
       description: `${blocked.toLocaleString()} threats blocked for ${profileName}. Healthy protection rate.`
     };
   }
-  
+
   if (protectionRate < 10) {
     return {
       color: 'bg-amber-500',
@@ -187,7 +188,7 @@ export function getProtectionStatus(
       description: `${blocked.toLocaleString()} threats blocked (${protectionRate}%). ${profileName} may be encountering more restricted content.`
     };
   }
-  
+
   return {
     color: 'bg-destructive',
     textColor: 'text-destructive',
@@ -204,17 +205,17 @@ export function getProtectionStatus(
  */
 export function groupBlockReasons(logs: LogEntry[]): BlockReason[] {
   if (!logs?.length) return [];
-  
+
   const blockedLogs = logs.filter(
     log => log.status === 'blocked' && log.reasons?.length > 0
   );
-  
+
   return _(blockedLogs)
     .groupBy(log => log.reasons![0].name)
     .map((items, reason) => ({
       reason,
       count: items.length,
-      domains: _.uniq(items.map(item => item.domain))
+      logs: _.uniqBy(items, 'domain')
     }))
     .orderBy('count', 'desc')
     .value();
@@ -246,18 +247,18 @@ export function formatTimeline(timeline: TimelineData[], timeRange: string = '1d
   if (timeRange === '6h' || timeRange === '12h' || timeRange === '1d') {
     const hours = timeRange === '6h' ? 6 : timeRange === '12h' ? 12 : 24;
     const now = new Date();
-    
+
     const currentHour = now.getHours();
-    
+
     return Array.from({ length: hours }, (_, index) => {
       // Calculate the actual clock hour this bar represents
       // index 0 = oldest hour, index 23 = current hour
       const hoursAgo = hours - 1 - index;
       const actualHour = (currentHour - hoursAgo + 24) % 24;
-      
+
       const hour12 = actualHour === 0 ? 12 : actualHour > 12 ? actualHour - 12 : actualHour;
       const period = actualHour >= 12 ? 'PM' : 'AM';
-      
+
       return {
         time: `${hour12}${period}`,
         allowed: allowedQueries[index] || 0,
@@ -269,27 +270,27 @@ export function formatTimeline(timeline: TimelineData[], timeRange: string = '1d
   // For 7d, 30d, 90d: aggregate hours into days
   const daysCount = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
   const hoursPerDay = 24;
-  
+
   const aggregated: Array<{ time: string; allowed: number; blocked: number }> = [];
-  
+
   for (let day = 0; day < daysCount; day++) {
     const startIdx = day * hoursPerDay;
     const endIdx = startIdx + hoursPerDay;
-    
+
     // Sum up all hours in this day
     let dayAllowed = 0;
     let dayBlocked = 0;
-    
+
     for (let i = startIdx; i < endIdx && i < allowedQueries.length; i++) {
       dayAllowed += allowedQueries[i] || 0;
       dayBlocked += blockedQueries[i] || 0;
     }
-    
+
     // Calculate the actual date for this day
     const today = new Date();
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() - (daysCount - 1 - day));
-    
+
     let timeLabel = '';
     if (timeRange === '7d') {
       // Show day names: Mon, Tue, Wed, etc.
@@ -300,14 +301,14 @@ export function formatTimeline(timeline: TimelineData[], timeRange: string = '1d
       const month = targetDate.toLocaleString('default', { month: 'short' });
       timeLabel = `${month} ${targetDate.getDate()}`;
     }
-    
+
     aggregated.push({
       time: timeLabel,
       allowed: dayAllowed,
       blocked: dayBlocked
     });
   }
-  
+
   return aggregated;
 }
 
@@ -326,13 +327,24 @@ export function formatStatus(status: string): string {
 }
 
 /**
+ * Format timestamp for activity lists
+ */
+export function formatTime(timestamp: string): string {
+  try {
+    return format(new Date(timestamp), 'h:mm a');
+  } catch (e) {
+    return 'Unknown';
+  }
+}
+
+/**
  * Convert logs to CSV format with proper escaping
  */
 export function convertToCSV(logs: LogEntry[]): string {
   if (!logs?.length) {
     return 'Timestamp,Domain,Status,Reason,Device Name,Device Model\n';
   }
-  
+
   // Escape CSV cell (handle quotes and commas)
   const escapeCSV = (value: string | undefined | null): string => {
     if (!value) return 'N/A';
@@ -342,7 +354,7 @@ export function convertToCSV(logs: LogEntry[]): string {
     }
     return str;
   };
-  
+
   const headers = ['Timestamp', 'Domain', 'Status', 'Reason', 'Device Name', 'Device Model'];
   const rows = logs.map(log => [
     escapeCSV(log.timestamp),
@@ -352,7 +364,7 @@ export function convertToCSV(logs: LogEntry[]): string {
     escapeCSV(log.device?.name || 'Unknown'),
     escapeCSV(log.device?.model || 'Unknown')
   ]);
-  
+
   return [
     headers.join(','),
     ...rows.map(row => row.join(','))
@@ -364,7 +376,7 @@ export function convertToCSV(logs: LogEntry[]): string {
  */
 export function isAdTrackerReason(reason: string): boolean {
   const trackerKeywords = ['oisd', 'ads', 'tracker', 'blocklist', 'adguard'];
-  return trackerKeywords.some(keyword => 
+  return trackerKeywords.some(keyword =>
     reason.toLowerCase().includes(keyword)
   );
 }
@@ -394,12 +406,12 @@ export function calculateTodaysHighlights(
 ): TodaysHighlights {
   try {
     let peakHour: { time: string; count: number } | null = null;
-    
+
     if (timeline?.length > 0 && chartData?.length > 0) {
       // Find peak from chartData (already formatted with correct labels)
       let maxCount = 0;
       let peakTime = '';
-      
+
       for (const item of chartData) {
         const total = item.allowed + item.blocked;
         if (total > maxCount) {
@@ -416,7 +428,7 @@ export function calculateTodaysHighlights(
     // Generate smart context label
     const timeRangeLabel = {
       '6h': 'Last 6 Hours',
-      '12h': 'Last 12 Hours', 
+      '12h': 'Last 12 Hours',
       '1d': 'Today',
       '7d': 'Last 7 Days',
       '30d': 'Last 30 Days'
@@ -425,7 +437,7 @@ export function calculateTodaysHighlights(
     // Detect late night activity ONLY for hourly views (6h, 12h, 1d)
     const isHourlyView = ['6h', '12h', '1d'].includes(timeRange);
     let lateNightActivity = null;
-    
+
     if (isHourlyView) {
       const now = new Date();
       const currentHour = now.getHours();
@@ -442,7 +454,7 @@ export function calculateTodaysHighlights(
 
     let context = '';
     let contextIcon: 'moon' | 'shield-alert' | 'shield-check' | 'trending-up' | 'activity' = 'activity';
-    
+
     if (lateNightActivity) {
       context = `Active at ${lateNightActivity.time} (bedtime)`;
       contextIcon = 'moon';

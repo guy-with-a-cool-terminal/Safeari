@@ -1,5 +1,5 @@
 {
-  "name": "Safeari-Frontend",
+  "name": "safeari-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -51,6 +51,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "lodash": "^4.17.21",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",

@@ -90,7 +90,7 @@ const App = () => (
                           </ProtectedRoute>
                         }
                       >
-                        <Route index element={<ParentalControls />} />
+                        <Route index element={<AnalyticsDashboard />} />
                         <Route path="analytics" element={<AnalyticsDashboard />} />
                         <Route path="parental" element={<ParentalControls />} />
                         <Route path="security" element={<SecuritySettings />} />

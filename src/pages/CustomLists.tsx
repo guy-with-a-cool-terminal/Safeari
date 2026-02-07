@@ -39,7 +39,7 @@ const CustomLists = () => {
   const [allowlistSearch, setAllowlistSearch] = useState("");
   const [denylistSearch, setDenylistSearch] = useState("");
   const [pendingOperations, setPendingOperations] = useState<Set<string>>(new Set());
-  
+
   // Upgrade modal state
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
@@ -270,9 +270,9 @@ const CustomLists = () => {
   }
 
   // Only show skeleton if BOTH queries have no data yet
-  const showSkeleton = (allowlistQuery.isLoading && !allowlistQuery.data) && 
-                       (denylistQuery.isLoading && !denylistQuery.data);
-  
+  const showSkeleton = (allowlistQuery.isLoading && !allowlistQuery.data) &&
+    (denylistQuery.isLoading && !denylistQuery.data);
+
   if (showSkeleton) {
     return (
       <div className="space-y-6">
@@ -391,9 +391,8 @@ const CustomLists = () => {
                   return (
                     <div
                       key={domain}
-                      className={`flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${
-                        isPending ? 'opacity-60' : ''
-                      }`}
+                      className={`flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${isPending ? 'opacity-60' : ''
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="font-mono text-sm">{domain}</span>
@@ -464,9 +463,8 @@ const CustomLists = () => {
                   return (
                     <div
                       key={domain}
-                      className={`flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${
-                        isPending ? 'opacity-60' : ''
-                      }`}
+                      className={`flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${isPending ? 'opacity-60' : ''
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="font-mono text-sm">{domain}</span>

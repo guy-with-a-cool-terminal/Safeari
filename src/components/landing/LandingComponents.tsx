@@ -27,12 +27,12 @@ interface InfoCardProps {
 }
 
 export const InfoCard = ({ icon: Icon, title, description, glowColor = "from-primary/5" }: InfoCardProps) => (
-  <div className="group relative rounded-xl bg-card/50 backdrop-blur-sm p-6 transition-all duration-300 hover:bg-card hover:-translate-y-1">
+  <div className="group relative rounded-xl bg-card border border-border/80 shadow-sm hover:shadow-lg p-8 hover-lift">
     <div className="space-y-4">
-      <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-        <Icon className="h-7 w-7 text-primary" />
+      <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300 text-primary">
+        <Icon className="h-7 w-7" />
       </div>
-      <h3 className="text-xl font-semibold">{title}</h3>
+      <h3 className="text-xl font-semibold tracking-tight text-foreground">{title}</h3>
       <p className="text-base leading-relaxed text-muted-foreground">{description}</p>
     </div>
   </div>
@@ -46,13 +46,16 @@ interface SetupStepProps {
 }
 
 export const SetupStep = ({ number, title, description, Icon }: SetupStepProps) => (
-  <div className="group relative rounded-xl bg-card/50 backdrop-blur-sm p-6 transition-all duration-300 hover:bg-card">
-    <div className="flex items-start gap-4">
-      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
-        <span className="font-bold text-primary text-lg">{number}</span>
+  <div className="group relative p-6 transition-all duration-300">
+    <div className="flex flex-col gap-5">
+      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary group-hover:border-primary transition-all duration-300">
+        <span className="font-semibold text-primary group-hover:text-primary-foreground text-lg transition-colors duration-300">{number}</span>
       </div>
-      <div className="space-y-2 flex-1">
-        <h3 className="text-lg md:text-xl font-semibold">{title}</h3>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Icon className="h-4 w-4 text-primary/70" />
+          <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+        </div>
         <p className="text-sm md:text-base leading-relaxed text-muted-foreground">{description}</p>
       </div>
     </div>
@@ -69,36 +72,57 @@ interface FeatureCardProps {
   glowColor?: string;
 }
 
-export const FeatureCard = ({ Icon, iconSrc, title, description, image, imageAlt, glowColor = "from-primary/10" }: FeatureCardProps) => (
-  <Card className="group relative border border-border/40 hover:border-primary/30 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 rounded-xl md:rounded-2xl overflow-hidden">
-    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br ${glowColor} to-transparent transition-opacity duration-500`} />
-    <CardHeader className="relative z-10 space-y-3 md:space-y-4 p-5 md:p-6">
-      <div className="h-11 w-11 md:h-14 md:w-14 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300 shadow-md">
-        {iconSrc ? (
-          <img src={iconSrc} alt="" className="h-6 w-6 md:h-7 md:w-7" />
-        ) : (
-          Icon && <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-        )}
-      </div>
-      <div className="space-y-2">
-        <CardTitle className="text-base md:text-lg lg:text-xl font-semibold">{title}</CardTitle>
-        <CardDescription className="text-sm md:text-base leading-relaxed">{description}</CardDescription>
-      </div>
-    </CardHeader>
-    {image && (
-      <div className="relative z-10">
-        <div className="border-t border-border/30">
-          <img
-            src={image}
-            alt={imageAlt || title}
-            className="w-full h-40 sm:h-48 md:h-56 lg:h-64 object-cover group-hover:scale-110 transition-transform duration-700"
-            loading="lazy"
-          />
+export const FeatureCard = ({ Icon, iconSrc, title, description, image, imageAlt, glowColor = "from-primary/10" }: FeatureCardProps) => {
+  const hasImage = !!image;
+
+  return (
+    <div className={`group relative overflow-hidden rounded-xl border transition-all duration-300 hover-lift ${hasImage ? 'border-border/20 h-[320px]' : 'bg-card border-border/60 hover:border-primary/20 h-full'}`}>
+
+      {/* Background Image & Overlay */}
+      {hasImage && (
+        <>
+          <div className="absolute inset-0">
+            <img
+              src={image}
+              alt={imageAlt || title}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 saturate-[1.1]"
+              loading="lazy"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent group-hover:from-black group-hover:via-black/50 transition-colors duration-300" />
+        </>
+      )}
+
+      {/* Content */}
+      <div className={`relative z-10 p-8 h-full flex flex-col ${hasImage ? 'justify-end' : ''}`}>
+
+        {/* Icon */}
+        <div className={`mb-auto ${hasImage ? 'mb-4' : 'mb-5'}`}>
+          <div className={`h-12 w-12 md:h-14 md:w-14 rounded-xl flex items-center justify-center transition-all duration-300 ${hasImage
+            ? 'bg-white/10 backdrop-blur-md text-white border border-white/20'
+            : 'bg-primary/5 group-hover:bg-primary/10 text-primary'
+            }`}>
+            {iconSrc ? (
+              <img src={iconSrc} alt="" className="h-6 w-6 md:h-7 md:w-7" />
+            ) : (
+              Icon && <Icon className="h-6 w-6 md:h-7 md:w-7" />
+            )}
+          </div>
+        </div>
+
+        {/* Text */}
+        <div className="space-y-3">
+          <h3 className={`text-xl font-bold tracking-tight ${hasImage ? 'text-white drop-shadow-xl' : 'text-foreground'}`}>
+            {title}
+          </h3>
+          <p className={`text-base leading-relaxed ${hasImage ? 'text-white/95 drop-shadow-lg' : 'text-muted-foreground'}`}>
+            {description}
+          </p>
         </div>
       </div>
-    )}
-  </Card>
-);
+    </div>
+  );
+};
 
 interface ContactCardProps {
   icon: LucideIcon;
@@ -128,23 +152,23 @@ export const ContactCard = ({
       href={buttonHref}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 w-full ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all h-10 px-4 w-full ${className}`}
     >
       {children}
     </a>
   );
 
   return (
-    <div className="group relative rounded-xl bg-card/50 backdrop-blur-sm p-6 text-center transition-all duration-300 hover:bg-card hover:-translate-y-1">
-      <div className="space-y-4">
-        <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-          <Icon className="h-8 w-8 text-primary" />
+    <div className="group relative rounded-xl bg-card border border-border shadow-sm hover:shadow-md p-8 text-center hover-lift">
+      <div className="space-y-5">
+        <div className="mx-auto h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300 text-primary">
+          <Icon className="h-7 w-7" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold">{title}</h3>
+          <h3 className="text-lg font-semibold tracking-tight text-foreground">{title}</h3>
           <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
         </div>
-        <Button className={buttonVariant === "default" ? `bg-primary text-primary-foreground hover:bg-primary/90 ${buttonClassName}` : `border-2 hover:border-primary hover:bg-primary/5 ${buttonClassName}`}>
+        <Button className={buttonVariant === "default" ? `bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm ${buttonClassName}` : `border border-border bg-transparent hover:bg-muted text-foreground ${buttonClassName}`}>
           {buttonText}
           <Icon className="ml-2 h-4 w-4" />
         </Button>

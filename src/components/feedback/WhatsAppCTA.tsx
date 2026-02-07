@@ -1,4 +1,5 @@
 import { MessageCircle, Users, ArrowRight } from "lucide-react";
+import { SiWhatsapp } from "@icons-pack/react-simple-icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -24,7 +25,7 @@ export const WhatsAppCTA = ({ variant }: WhatsAppCTAProps) => {
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-              <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <SiWhatsapp className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="flex-1 space-y-2">
               <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">Join Our Parent Community</h3>
@@ -43,7 +44,7 @@ export const WhatsAppCTA = ({ variant }: WhatsAppCTAProps) => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2"
               >
-                <MessageCircle className="h-4 w-4" />
+                <SiWhatsapp className="h-4 w-4" />
                 Join WhatsApp Group
                 <ArrowRight className="h-4 w-4" />
               </a>
@@ -60,7 +61,7 @@ export const WhatsAppCTA = ({ variant }: WhatsAppCTAProps) => {
       <CardContent className="pt-6">
         <div className="flex items-start gap-4">
           <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-            <MessageCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <SiWhatsapp className="h-5 w-5 text-green-600 dark:text-green-400" />
           </div>
           <div className="flex-1 space-y-2">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100">Need Instant Help?</h3>
@@ -79,7 +80,7 @@ export const WhatsAppCTA = ({ variant }: WhatsAppCTAProps) => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2"
               >
-                <MessageCircle className="h-4 w-4" />
+                <SiWhatsapp className="h-4 w-4" />
                 Join WhatsApp Community
               </a>
             </Button>

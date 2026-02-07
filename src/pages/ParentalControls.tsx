@@ -337,7 +337,7 @@ const ParentalControls = () => {
                       }
                       setGlobalScheduleOpen(true);
                     }}
-                    className="flex flex-col items-center gap-2 p-4 sm:p-3 min-w-[110px] sm:min-w-[100px] rounded-2xl transition-all border shadow-sm bg-accent/30 border-border/50 hover:bg-accent/50 group"
+                    className="flex flex-col items-center gap-2 p-4 sm:p-3 min-w-[110px] sm:min-w-[100px] rounded-xl transition-all border shadow-sm bg-accent/30 border-border/50 hover:bg-accent/50 group"
                   >
                     <div
                       style={{ color: 'white', backgroundColor: color }}
@@ -362,7 +362,7 @@ const ParentalControls = () => {
                   key={category}
                   onClick={() => blockAllAndNavigate(category)}
                   className={cn(
-                    "flex flex-col items-center gap-2 p-4 sm:p-3 min-w-[110px] sm:min-w-[100px] rounded-2xl transition-all border shadow-sm group",
+                    "flex flex-col items-center gap-2 p-4 sm:p-3 min-w-[110px] sm:min-w-[100px] rounded-xl transition-all border shadow-sm group",
                     isAllBlocked
                       ? "bg-primary/5 border-primary/30"
                       : "bg-accent/30 border-border/50 hover:bg-accent/50"

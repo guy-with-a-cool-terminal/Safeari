@@ -25,15 +25,15 @@ import { GlobalNav } from "@/components/navigation/GlobalNav";
 const getNavItems = (tier: string = 'free') => {
   const baseItems = [
     {
-      icon: Users,
-      label: "Parental",
+      icon: BarChart3,
+      label: "Analytics",
       href: "/dashboard",
       available: true
     },
     {
-      icon: BarChart3,
-      label: "Analytics",
-      href: "/dashboard/analytics",
+      icon: Users,
+      label: "Parental",
+      href: "/dashboard/parental",
       available: true
     },
     {

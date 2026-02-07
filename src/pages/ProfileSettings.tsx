@@ -11,9 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import DNSSetupDialog from "@/components/profile/DNSSetupDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import DNSSetupDialog from "@/components/profile/DNSSetupDialog";
+import SeamlessSection from "@/components/ui/SeamlessSection";
 
 /**
  * Profile Settings Page - Edit current profile details
@@ -86,26 +86,15 @@ const ProfileSettings = () => {
     setIsSaving(true);
     try {
       await updateProfile(currentProfile.id, formData);
-      
+
       toast({
         title: "Profile Updated",
         description: "Your changes have been saved successfully.",
       });
-      
+
       // Background refresh
       refreshProfiles().catch(console.error);
     } catch (error) {
-      // Revert on error
-      try {
-        const profile = await getProfile(currentProfile.id);
-        setProfileData(profile);
-        setFormData({
-          display_name: profile.display_name,
-          age_preset: profile.age_preset,
-          is_router_level: profile.is_router_level,
-        });
-      } catch {}
-      
       toast({
         variant: "destructive",
         title: "Update Failed",
@@ -122,12 +111,12 @@ const ProfileSettings = () => {
     try {
       await deleteProfile(currentProfile.id);
       await refreshProfiles();
-      
+
       toast({
         title: "Profile Deleted",
         description: `${currentProfile.display_name} has been permanently deleted.`,
       });
-      
+
       navigate("/profiles");
     } catch (error) {
       toast({
@@ -151,60 +140,65 @@ const ProfileSettings = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Profile Settings</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage {currentProfile.display_name}'s configuration
+    <div className="space-y-12 max-w-4xl pb-20">
+      {/* Header - Personalized and High Impact */}
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight">Profile Settings</h1>
+        <p className="text-lg text-muted-foreground leading-relaxed">
+          Manage how Safeari protects <span className="text-primary font-semibold">{currentProfile.display_name}</span>.
         </p>
       </div>
 
       {/* Profile Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
-          <CardDescription>Update basic profile details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="display-name">Profile Name</Label>
-            <Input
-              id="display-name"
-              value={formData.display_name}
-              onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-              placeholder="Enter profile name"
-              disabled={isSaving}
-            />
+      <SeamlessSection
+        title="Identity & Protection"
+        description="Core details that define this profile's browsing experience."
+      >
+        <div className="p-2 sm:p-6 space-y-8 bg-card/30">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <Label htmlFor="display-name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Profile Name</Label>
+              <Input
+                id="display-name"
+                value={formData.display_name}
+                onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
+                placeholder="Enter profile name"
+                disabled={isSaving}
+                className="h-12 bg-background border-border/40 rounded-xl focus:ring-primary/20 transition-all font-medium"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="age-preset" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Protection Level</Label>
+              <Select
+                value={formData.age_preset}
+                onValueChange={(value: any) => setFormData({ ...formData, age_preset: value })}
+                disabled={isSaving}
+              >
+                <SelectTrigger id="age-preset" className="h-12 bg-background border-border/40 rounded-xl focus:ring-primary/20 transition-all font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-border/40 shadow-xl">
+                  {referenceData?.age_presets && Object.entries(referenceData.age_presets).map(([key, config]) => (
+                    <SelectItem key={key} value={key} className="py-3 focus:bg-primary/5 rounded-lg mx-1">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold">{config.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium italic">{config.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="age-preset">Protection Level</Label>
-            <Select
-              value={formData.age_preset}
-              onValueChange={(value: any) => setFormData({ ...formData, age_preset: value })}
-              disabled={isSaving}
-            >
-              <SelectTrigger id="age-preset">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {referenceData?.age_presets && Object.entries(referenceData.age_presets).map(([key, config]) => (
-                  <SelectItem key={key} value={key}>
-                    {config.name} - {config.description}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+          <div className="group flex items-center justify-between p-6 rounded-xl bg-background border border-border/40 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5">
             <div className="space-y-1">
-              <Label htmlFor="router-level" className="cursor-pointer">
+              <Label htmlFor="router-level" className="cursor-pointer text-base font-bold tracking-tight">
                 Router Level Protection
               </Label>
-              <p className="text-sm text-muted-foreground">
-                Apply settings to all devices on your network
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
+                Enable this if you've configured your entire home network to route through this profile's DNS.
               </p>
             </div>
             <Switch
@@ -212,63 +206,80 @@ const ProfileSettings = () => {
               checked={formData.is_router_level}
               onCheckedChange={(checked) => setFormData({ ...formData, is_router_level: checked })}
               disabled={isSaving}
+              className="data-[state=checked]:bg-primary transition-colors"
             />
           </div>
 
-          <Button onClick={handleSave} className="w-full" disabled={isSaving}>
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="pt-4">
+            <Button
+              onClick={handleSave}
+              className="h-12 px-8 rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-[0.98]"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving Changes...
+                </>
+              ) : (
+                "Save Configuration"
+              )}
+            </Button>
+          </div>
+        </div>
+      </SeamlessSection>
 
       {/* DNS Setup */}
-      <Card>
-        <CardHeader>
-          <CardTitle>DNS Configuration</CardTitle>
-          <CardDescription>Configure DNS for this profile</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => setDnsSetupOpen(true)}
-          >
-            View DNS Setup Instructions
-          </Button>
-        </CardContent>
-      </Card>
+      <SeamlessSection
+        title="Integration Guide"
+        description="Step-by-step instructions to apply this profile to your devices."
+      >
+        <div className="p-2 sm:p-6 bg-card/30">
+          <div className="p-6 rounded-xl bg-primary/5 border border-primary/10 flex flex-col md:flex-row items-center gap-6">
+            <div className="flex-1 space-y-2 text-center md:text-left">
+              <h4 className="font-bold text-lg tracking-tight">DNS Settings</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Connect your PC, Mobile, or Router using this profile's unique secure DNS address to start filtering content.
+              </p>
+            </div>
+            <Button
+              variant="default"
+              className="h-11 px-6 rounded-full font-bold bg-primary hover:bg-primary/90 transition-all"
+              onClick={() => setDnsSetupOpen(true)}
+            >
+              View Setup Guide
+            </Button>
+          </div>
+        </div>
+      </SeamlessSection>
 
       {/* Danger Zone */}
-      <Card className="border-destructive/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
-            Danger Zone
-          </CardTitle>
-          <CardDescription>
-            Irreversible actions for this profile
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Deleting this profile will permanently remove all settings, analytics, and configuration. 
-            This action cannot be undone.
-          </p>
-          <Button
-            variant="destructive"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            Delete Profile
-          </Button>
-        </CardContent>
-      </Card>
+      <SeamlessSection
+        title="Danger Zone"
+        description="Permanently remove this profile and all associated data."
+      >
+        <div className="p-2 sm:p-6 bg-rose-500/5">
+          <div className="p-6 rounded-xl bg-white/5 border border-rose-500/20 flex flex-col md:flex-row items-center gap-6">
+            <div className="flex-1 space-y-2 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2 text-rose-600">
+                <AlertTriangle className="h-5 w-5" />
+                <h4 className="font-bold text-lg tracking-tight">Delete Profile</h4>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed italic">
+                Deletes all parental controls, security settings, and browsing logs.
+                <span className="font-bold text-rose-500/80 underline decoration-rose-500/20 underline-offset-4 ml-1">This cannot be undone.</span>
+              </p>
+            </div>
+            <Button
+              variant="destructive"
+              className="h-11 px-6 rounded-full font-bold shadow-lg shadow-rose-500/20 transition-all hover:scale-[1.02]"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              Delete Permanently
+            </Button>
+          </div>
+        </div>
+      </SeamlessSection>
 
       {/* DNS Setup Dialog */}
       <DNSSetupDialog

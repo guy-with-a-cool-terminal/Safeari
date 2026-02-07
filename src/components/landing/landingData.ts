@@ -1,4 +1,4 @@
-import { Users, Settings, Smartphone, Shield, Eye, Clock } from "lucide-react";
+import { Users, Settings, Smartphone, Shield, Eye, Clock, Unlock } from "lucide-react";
 import SafeariIconLogo from "@/assets/favicon.svg";
 import companiesImage from "@/assets/companies.png";
 import kidsImage from "@/assets/3kids.jpg";
@@ -15,40 +15,40 @@ export const NAV_ITEMS = [
 
 export const WHY_CARDS = [
   {
-    icon: Shield,
-    title: "Works Everywhere, Automatically",
-    description: "Protection follows your child across all devices, apps, and browsers. No software to install on every device. Set it once, protected forever.",
-    glowColor: "from-blue-500/5"
-  },
-  {
-    icon: Users,
-    title: 'Impossible to "Just Turn Off"',
-    description: "Unlike apps kids can delete or browsers they can switch, Safeari protects the entire internet connection. Kids can't just uninstall it. Bypass protection included.",
-    glowColor: "from-green-500/5"
-  },
-  {
-    icon: Clock,
-    title: "Zero Performance Impact",
-    description: "Safeari works before sites even load—no slowdowns whatsoever. Actually makes browsing faster by blocking ads and trackers before they download.",
-    glowColor: "from-purple-500/5"
-  },
-  {
-    icon: Users,
-    title: "Different Kids, Different Rules",
-    description: "Your 7-year-old and teenager need different protections. Create separate profiles with age-appropriate presets. No one-size-fits-all approach.",
-    glowColor: "from-orange-500/5"
-  },
-  {
-    icon: Eye,
-    title: "Privacy-First Design",
-    description: "We only log domain names, never full URLs or personal data. Your family's browsing stays private. No selling data to advertisers—ever.",
+    icon: Unlock,
+    title: 'Impossible to "Just Delete"',
+    description: "Unlike apps kids can easily bypass or delete, Safeari protects the entire connection. Even tech-savvy kids can't just 'turn it off' to hide their activity.",
     glowColor: "from-red-500/5"
   },
   {
     icon: Shield,
-    title: "Setup in 5 Minutes",
-    description: "Simple step-by-step guides for every device. Most parents are fully protected in one sitting. Support available via WhatsApp, phone, or email if you need help.",
+    title: "One Shield, Every Device",
+    description: "Protection follows your child across phones, tablets, gaming consoles, and even smart TVs. No software to install on every single gadget.",
+    glowColor: "from-blue-500/5"
+  },
+  {
+    icon: Clock,
+    title: 'No more "Slow Internet" Fights',
+    description: "Safeari stops harmful sites before they even start loading. It actually makes browsing faster by blocking heavy ads and trackers automatically.",
+    glowColor: "from-purple-500/5"
+  },
+  {
+    icon: Users,
+    title: "Custom Protection for Each Child",
+    description: "Your 7-year-old and teenager have different needs. Create separate profiles with age-appropriate presets so everyone stays safe.",
+    glowColor: "from-green-500/5"
+  },
+  {
+    icon: Eye,
+    title: "Your Privacy is Non-Negotiable",
+    description: "We only log domain names, never personal data or full URLs. Your family's business stays your business. We never sell your data—ever.",
     glowColor: "from-cyan-500/5"
+  },
+  {
+    icon: Smartphone,
+    title: "Protected in 5 Minutes",
+    description: "Simple step-by-step guides for every device. Most parents are fully set up in one sitting. Support available via WhatsApp if you get stuck.",
+    glowColor: "from-orange-500/5"
   }
 ];
 
@@ -102,6 +102,8 @@ export const FEATURES = [
     Icon: Clock,
     title: "Smart Screen Time Management",
     description: "Set schedules for specific apps and websites. Weekends can be more flexible while school nights stay focused.",
+    image: companiesImage, // Placeholder for layout consistency
+    imageAlt: "Dashboard illustrating screen time limits and schedule management",
     glowColor: "from-orange-500/10"
   }
 ];
@@ -153,36 +155,36 @@ export const COMPARISON_ROWS = [
 
 export const FAQS = [
   {
-    question: "How does Safeari protect my kids online?",
-    answer: "Safeari blocks harmful websites before they even load on your child's device. Protection works across all apps and browsers automatically—no software to install on every device. You configure it once in your device settings, and you're protected forever."
-  },
-  {
-    question: "Is it difficult to set up?",
-    answer: "No! Setup takes just 5 minutes. We provide step-by-step instructions for every device type (phones, tablets, computers, routers). Most parents have it running in one sitting. Our support team is also available via WhatsApp, phone, or email if you need help."
-  },
-  {
     question: "Can my tech-savvy kid bypass Safeari?",
-    answer: "Safeari includes bypass protection that blocks VPNs and proxy services kids use to get around filters. While no system is 100% foolproof, Safeari's internet-level protection is much harder to bypass than browser extensions or apps kids can just delete. We also provide alerts if bypass attempts are detected."
-  },
-  {
-    question: "Will this slow down my internet?",
-    answer: "No. Safeari works before websites even start loading, so there's zero impact on speed. Actually, it makes browsing faster because ads and trackers are blocked before they download."
-  },
-  {
-    question: "What's the difference between the Free and paid plans?",
-    answer: "The Free plan includes all core protection features but limits you to 1 profile and 1 day of analytics history. Paid plans offer multiple profiles (great for families), longer analytics retention (7-90 days), and Premium includes custom allow/deny lists for advanced control. All plans include the same filtering technology."
-  },
-  {
-    question: "Can I try it before committing to a paid plan?",
-    answer: "Absolutely! Start with our Free tier—no credit card required. You get full access to all filtering features. When you're ready to add more profiles or need longer analytics history, you can upgrade anytime from your dashboard."
-  },
-  {
-    question: "Does Safeari work on all devices?",
-    answer: "Yes! Safeari works on iOS (iPhone/iPad), Android, Windows, Mac, Linux, and even at the router level to protect your entire home network. Once configured, protection follows your child across all their devices automatically."
+    answer: "Unlike apps kids can just delete or VPNs they use to hide, Safeari blocks those very workarounds at the internet level. While no system is 100% foolproof, Safeari's DNS-level protection is significantly harder to bypass. We even send you alerts if we detect bypass attempts."
   },
   {
     question: "How is my family's privacy protected?",
-    answer: "We take privacy seriously. Safeari only logs domain names (like 'facebook.com'), not full URLs or personal data. Analytics are encrypted and never sold to third parties. You maintain full control over your data and can export or delete it anytime."
+    answer: "We take privacy seriously. Safeari only logs domain names (like 'google.com'), never full URLs, personal data, or content. Your data is encrypted and we have a strict policy: we never sell your family's browsing data to third parties."
+  },
+  {
+    question: "What's the difference between the Free and paid plans?",
+    answer: "The Free plan includes our full filtering technology but is limited to 1 profile and 1 day of history. Paid plans allow for multiple child profiles (Family plan), up to 90 days of analytics, and custom blocklists. We keep the core protection free so every child can stay safe."
+  },
+  {
+    question: "How does Safeari actually work?",
+    answer: "Safeari acts as a filter for your home's internet. It stops harmful sites from even reaching your child's phone, tablet, or laptop. Because it works at the connection level, it protects every app and browser automatically—no software per device required."
+  },
+  {
+    question: "Is it difficult to set up?",
+    answer: "Not at all. Most parents finish setup in under 5 minutes. We provide clear, step-by-step guides for every device. If you're really stuck, our team is available via WhatsApp to walk you through it."
+  },
+  {
+    question: "Will this slow down my internet?",
+    answer: "Actually, it might make it faster. Safeari blocks ads and hidden trackers before they even download, which can reduce data usage and improve page load speeds. There's zero lag on your connection."
+  },
+  {
+    question: "Can I try it before paying anything?",
+    answer: "Yes! Start with our Free tier—no credit card needed. You get the same world-class protection as our paid plans. When your family grows and you need more profiles, you can upgrade anytime from your dashboard."
+  },
+  {
+    question: "Does it work on all devices?",
+    answer: "Yes! Safeari works on iOS (iPhone/iPad), Android, Windows, Mac, and even directly on your Wi-Fi router. Once set up, the protection follows your child wherever they go."
   }
 ];
 

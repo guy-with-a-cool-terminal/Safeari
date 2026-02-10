@@ -314,7 +314,7 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
           <Card className="bg-primary/5 border-primary/20 mb-4 animate-in slide-in-from-top-2">
             <CardContent className="p-3 sm:p-4 space-y-3">
               <p className="font-medium text-sm">Get Help Setting Up Protection</p>
-              <div className="grid gap-2 grid-cols-1 sm:grid-cols-3">
+              <div className="grid gap-2 grid-cols-1">
                 <Button asChild variant="outline" size="sm" className="justify-start h-10 bg-white dark:bg-black/20">
                   <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                     <SiWhatsapp className="h-4 w-4 mr-2 text-[#25D366] flex-shrink-0" />
@@ -345,9 +345,9 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
               <div className="mx-auto h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                 <Smartphone className="h-6 w-6 text-primary" />
               </div>
-              <DialogTitle className="text-xl">Send Setup to {profileName}</DialogTitle>
+              <DialogTitle className="text-xl">Setup {profileName}'s Android Device</DialogTitle>
               <DialogDescription>
-                Open this link on {profileName}'s device to start the setup.
+                Send this link to {profileName}'s Android phone or tablet. For other devices, use the tabs below.
               </DialogDescription>
             </div>
 
@@ -366,7 +366,7 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
                 <p className="text-xs text-center text-muted-foreground uppercase tracking-widest font-medium">OR</p>
 
                 <Button asChild className="w-full h-11" size="lg">
-                  <a href={`sms:?body=${encodeURIComponent(`Hi! Setup protection on your phone here: https://safeari.co.ke/setup?dns=${dnsDetails.id}&name=${encodeURIComponent(profileName)}`)}`}>
+                  <a href={`sms:?&body=${encodeURIComponent(`Hi! Setup protection on your phone here: https://safeari.co.ke/setup?dns=${dnsDetails.id}&name=${encodeURIComponent(profileName)}`)}`}>
                     Send via SMS
                   </a>
                 </Button>
@@ -408,7 +408,7 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
                   className="text-primary border-primary/20 hover:bg-primary/5 text-xs h-9 px-3 flex-shrink-0 hidden sm:flex"
                 >
                   <Share2 className="h-3.5 w-3.5 mr-1.5" />
-                  Send to Child
+                  Setup Android Device
                 </Button>
 
                 {/* Mobile Icon Only */}

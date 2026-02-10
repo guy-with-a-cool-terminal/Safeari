@@ -22,8 +22,8 @@ export const queryClient = new QueryClient({
       // How long until data is considered stale (5 minutes)
       staleTime: 5 * 60 * 1000,
 
-      // How long to keep unused data in cache (10 minutes)
-      gcTime: 10 * 60 * 1000,
+      // How long to keep unused data in cache (10 minutes) - v4 uses cacheTime
+      cacheTime: 10 * 60 * 1000,
 
       // Retry failed requests 3 times
       retry: 3,
@@ -39,16 +39,10 @@ export const queryClient = new QueryClient({
 
       // Check for stale data on component mount
       refetchOnMount: true,
-
-      // Throw errors to error boundaries (can be caught in components)
-      throwOnError: false,
     },
     mutations: {
       // Retry mutations once on failure
       retry: 1,
-
-      // Throw errors for mutations (important for form validation)
-      throwOnError: false,
     },
   },
 });
@@ -61,7 +55,7 @@ export const queryClient = new QueryClient({
  * - Offline data access
  * - Better perceived performance
  *
- * Cache persists for 24 hours (gcTime setting)
+ * Cache persists for 1 hour (reduced from 24h to prevent stale subscription data)
  */
 const localStoragePersister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -77,12 +71,12 @@ const localStoragePersister = createSyncStoragePersister({
 persistQueryClient({
   queryClient,
   persister: localStoragePersister,
-  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  maxAge: 60 * 60 * 1000, // 1 hour (reduced from 24h to prevent stale subscription data)
   hydrateOptions: {
-    // Only restore queries that haven't exceeded gcTime
+    // Only restore queries that haven't exceeded cacheTime (v4 API)
     defaultOptions: {
       queries: {
-        gcTime: 10 * 60 * 1000, // 10 minutes
+        cacheTime: 10 * 60 * 1000, // 10 minutes
       },
     },
   },

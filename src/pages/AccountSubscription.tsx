@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { TierCard } from "@/components/subscription/TierCard";
 import { useSubscriptionTiers } from "@/hooks/useSubscriptionTiers";
 import { usePaystack } from "@/hooks/usePaystack";
+import { useCurrentSubscription } from "@/hooks/queries";
+import { useCancelSubscription, useCancelPendingSubscription } from "@/hooks/mutations";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,18 +24,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getCurrentSubscription, cancelSubscription, cancelPendingSubscription } from "@/lib/api";
-import type { Subscription, SubscriptionTier } from "@/lib/api/types";
+import type { SubscriptionTier } from "@/lib/api/types";
 
 const AccountSubscription = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [isPendingUpgrade, setIsPendingUpgrade] = useState(false);
-  const [isCancellingPending, setIsCancellingPending] = useState(false);
   const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
+  const { data: subscription, isLoading: subscriptionLoading } = useCurrentSubscription();
+  const cancelMutation = useCancelSubscription();
+  const cancelPendingMutation = useCancelPendingSubscription();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedTierForUpgrade, setSelectedTierForUpgrade] = useState<string>("");
   const [showUpgradeWarning, setShowUpgradeWarning] = useState(false);
@@ -41,47 +41,16 @@ const AccountSubscription = () => {
 
   usePaystack();
 
-  useEffect(() => {
-    loadSubscription();
-  }, []);
-
-  const loadSubscription = async () => {
-  try {
-    const subData = await getCurrentSubscription();
-    setSubscription(subData);
-    setIsPendingUpgrade(false);
-  } catch (error: any) {
-    // If 404, check if there's a pending upgrade
-    if (error.response?.status === 404) {
-      setIsPendingUpgrade(true);
-      setSubscription(null);
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Failed to load subscription",
-        description: "Please refresh the page to try again"
-      });
-    }
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  const loadData = async () => {
-    await loadSubscription();
-  };
-
   const handleCancelSubscription = async () => {
     if (!subscription) return;
-    
+
     try {
-      await cancelSubscription(subscription.id);
+      await cancelMutation.mutateAsync(subscription.id);
       toast({
         title: "Subscription Canceled",
         description: `Your subscription will remain active until ${new Date(subscription.current_period_end).toLocaleDateString()}`,
       });
       setCancelDialogOpen(false);
-      loadData();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -92,24 +61,20 @@ const AccountSubscription = () => {
   };
 
   const handleCancelPending = async () => {
-  setIsCancellingPending(true);
-  try {
-    await cancelPendingSubscription();
-    toast({
-      title: "Upgrade Cancelled",
-      description: "You've been restored to your previous subscription.",
-    });
-    await loadSubscription();
-  } catch (error) {
-    toast({
-      variant: "destructive",
-      title: "Failed to cancel",
-      description: "Please try again or wait 10-15 minutes for automatic reversion."
-    });
-  } finally {
-    setIsCancellingPending(false);
-  }
-};
+    try {
+      await cancelPendingMutation.mutateAsync();
+      toast({
+        title: "Upgrade Cancelled",
+        description: "You've been restored to your previous subscription.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to cancel",
+        description: "Please try again or wait 10-15 minutes for automatic reversion."
+      });
+    }
+  };
 
   const handleUpgrade = (tier: SubscriptionTier) => {
     if (subscription?.status !== 'active' && subscription?.tier !== 'free') {
@@ -135,13 +100,16 @@ const AccountSubscription = () => {
 
   const confirmTierChange = () => {
     if (!pendingTierChange) return;
-    
+
     setSelectedTierForUpgrade(pendingTierChange.name);
     setShowUpgradeWarning(false);
     setShowPaymentModal(true);
   };
 
-  if (isLoading || tiersLoading) {
+  const isLoading = subscriptionLoading || tiersLoading;
+  const isPendingUpgrade = !subscription && !subscriptionLoading && !tiersLoading;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -187,10 +155,10 @@ const AccountSubscription = () => {
                   <Button
                     variant="outline"
                     onClick={handleCancelPending}
-                    disabled={isCancellingPending}
+                    disabled={cancelPendingMutation.isPending}
                     className="flex-1"
                   >
-                    {isCancellingPending ? (
+                    {cancelPendingMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Cancelling...
@@ -233,21 +201,21 @@ const AccountSubscription = () => {
     );
   }
 
-const tierNames: Record<string, string> = {
-  free: "Free",
-  basic: "Basic",
-  family: "Family",
-  premium: "Premium"
-};
+  const tierNames: Record<string, string> = {
+    free: "Free",
+    basic: "Basic",
+    family: "Family",
+    premium: "Premium"
+  };
 
-const currentTierData = tiers.find(t => t.id === subscription.tier);
-const tierOrder = ['free', 'basic', 'family', 'premium'];
-const currentTierIndex = tierOrder.indexOf(subscription.tier);
+  const currentTierData = tiers.find(t => t.id === subscription.tier);
+  const tierOrder = ['free', 'basic', 'family', 'premium'];
+  const currentTierIndex = tierOrder.indexOf(subscription.tier);
 
-const isDowngrade = (tier: SubscriptionTier) => {
-  const tierIndex = tierOrder.indexOf(tier.id);
-  return tierIndex < currentTierIndex;
-};
+  const isDowngrade = (tier: SubscriptionTier) => {
+    const tierIndex = tierOrder.indexOf(tier.id);
+    return tierIndex < currentTierIndex;
+  };
 
   return (
     <>
@@ -278,7 +246,7 @@ const isDowngrade = (tier: SubscriptionTier) => {
               )}
             </div>
           </CardHeader>
-          
+
           <CardContent className="space-y-4 pb-4">
             {currentTierData?.features && (
               <div className="grid gap-2 sm:gap-2.5 grid-cols-1 sm:grid-cols-2">
@@ -311,7 +279,7 @@ const isDowngrade = (tier: SubscriptionTier) => {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 <div className="space-y-0.5">
@@ -340,12 +308,12 @@ const isDowngrade = (tier: SubscriptionTier) => {
               View All Details
             </Button>
           </div>
-          
+
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier) => {
               const isCurrent = tier.id === subscription.tier;
               const isRecommended = tier.name === 'Family' && !isCurrent;
-              
+
               return (
                 <TierCard
                   key={tier.id}
@@ -390,7 +358,7 @@ const isDowngrade = (tier: SubscriptionTier) => {
             <AlertDialogHeader>
               <AlertDialogTitle>Cancel Subscription?</AlertDialogTitle>
               <AlertDialogDescription className="text-sm">
-                Your subscription will remain active until {new Date(subscription.current_period_end).toLocaleDateString()}. 
+                Your subscription will remain active until {new Date(subscription.current_period_end).toLocaleDateString()}.
                 After that, you'll be downgraded to the Free tier.
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -405,8 +373,8 @@ const isDowngrade = (tier: SubscriptionTier) => {
             </div>
             <AlertDialogFooter className="flex-col sm:flex-row gap-2">
               <AlertDialogCancel className="w-full sm:w-auto">Keep Subscription</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleCancelSubscription} 
+              <AlertDialogAction
+                onClick={handleCancelSubscription}
                 className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Yes, Cancel
@@ -423,7 +391,6 @@ const isDowngrade = (tier: SubscriptionTier) => {
           }}
           tierName={selectedTierForUpgrade}
           onSuccess={() => {
-            loadData();
             toast({
               title: "Subscription Updated",
               description: "Your subscription has been updated successfully.",

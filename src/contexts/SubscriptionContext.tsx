@@ -1,7 +1,6 @@
-import { createContext, useContext, ReactNode, useEffect, useMemo } from 'react';
+import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useCurrentSubscription, useSubscriptionTiers } from '@/hooks/queries';
 import type { Subscription, SubscriptionTier } from '@/lib/api/subscriptions';
-import { isAuthenticated } from '@/lib/api';
 
 interface SubscriptionContextType {
   subscription: Subscription | null;
@@ -14,31 +13,23 @@ interface SubscriptionContextType {
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
 /**
- * SubscriptionProvider - Now powered by React Query
+ * SubscriptionProvider - Powered by React Query
  *
- * Uses React Query under the hood with intelligent caching:
- * - Current subscription: 5 min cache
+ * Uses React Query with intelligent caching:
+ * - Current subscription: 1 min stale time, 10 min cache
  * - Subscription tiers: 1 hr cache (rarely change)
+ * - Automatic cache invalidation on subscription changes
  *
  * Benefits:
- * - Faster landing page (tiers cached)
- * - Faster subscription pages (tiers cached)
- * - Background updates
+ * - Always shows current subscription tier
  * - Shared cache across components
+ * - Background updates
+ * - Offline support via React Query persistence
  */
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Use React Query hooks directly
   const subscriptionQuery = useCurrentSubscription();
   const tiersQuery = useSubscriptionTiers();
-
-  // Cache tier to localStorage for instant access (as before)
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      localStorage.removeItem('cached_tier');
-    } else if (subscriptionQuery.data?.tier) {
-      localStorage.setItem('cached_tier', subscriptionQuery.data.tier);
-    }
-  }, [subscriptionQuery.data?.tier]);
 
   // Find matching tier details
   const subscriptionTier = useMemo(() => {

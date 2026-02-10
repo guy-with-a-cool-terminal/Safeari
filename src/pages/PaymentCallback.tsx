@@ -6,11 +6,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SafeariLogo from "@/assets/favicon.svg";
+import { useQueryClient } from '@tanstack/react-query';
 
 const PaymentCallback = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<'checking' | 'success' | 'failed'>('checking');
   const reference = searchParams.get('reference');
 
@@ -18,16 +20,27 @@ const PaymentCallback = () => {
     const checkPaymentStatus = async () => {
       try {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
+
         const subscription = await getCurrentSubscription();
-        
+
         if (subscription.status === 'active') {
+          // Invalidate cache to ensure all components see the new subscription
+          await queryClient.invalidateQueries({
+            queryKey: ['subscription', 'current'],
+          });
+          await queryClient.invalidateQueries({
+            queryKey: ['profiles'],
+          });
+
           setStatus('success');
           toast({
             title: "Payment Successful!",
             description: "Your subscription is now active.",
           });
-          
+
+          // Clear reference from URL
+          setSearchParams({});
+
           setTimeout(() => {
             navigate('/profiles?create=true');
           }, 2000);
@@ -45,7 +58,7 @@ const PaymentCallback = () => {
     if (reference) {
       checkPaymentStatus();
     }
-  }, [reference, navigate, toast]);
+  }, [reference, navigate, toast, queryClient, setSearchParams]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -81,7 +94,7 @@ const PaymentCallback = () => {
               </Button>
             </>
           )}
-          
+
           {status === 'checking' && (
             <p className="text-sm text-muted-foreground text-center">
               Reference: {reference}

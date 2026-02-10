@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Copy, CheckCircle2, AlertCircle, Loader2, Shield, Smartphone, Monitor, Network, HelpCircle, MessageCircle, Phone, Mail, ExternalLink } from "lucide-react";
+import { Copy, CheckCircle2, AlertCircle, Loader2, Shield, Smartphone, Monitor, Network, HelpCircle, Phone, Mail, ExternalLink, QrCode as QrIcon, Send, Share2 } from "lucide-react";
 import SafeariLogo from "@/assets/favicon.svg";
+import QRCode from "react-qr-code";
+import { SiWhatsapp } from "@icons-pack/react-simple-icons";
 import { useToast } from "@/hooks/use-toast";
 import { getNextDNSDetails, getDeviceStats } from "@/lib/api";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -88,6 +90,7 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [activeTab, setActiveTab] = useState("android");
   const [showHelp, setShowHelp] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const { toast } = useToast();
   const { subscription } = useSubscription();
 
@@ -158,18 +161,18 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
         name: "Android",
         steps: [
           {
-            title: "Open Private DNS Settings",
+            title: "Open Settings",
             description: "Go to Settings → Network & internet → Private DNS"
           },
           {
             title: "Enter Protection Address",
-            description: "Select 'Private DNS provider hostname' and paste:",
+            description: "Select 'Private DNS provider hostname' and paste this:",
             copyText: dotHostname,
             copyLabel: "Protection address"
           },
           {
-            title: "Save & You're Protected!",
-            description: "Tap Save. Done! All harmful content is now blocked."
+            title: "Save",
+            description: "Tap Save. That's it! You're protected."
           }
         ]
       },
@@ -281,42 +284,53 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[95vh] overflow-y-auto">
-        {/* Sticky Help Button */}
-        <div className="sticky top-0 z-10 bg-background pb-3 -mb-3">
+      <DialogContent className="sm:max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 gap-4">
+        {/* Sticky Header Actions */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-2 -mt-2 pt-2 flex justify-between gap-2 border-b mb-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setShowHelp(!showHelp)}
-            className="w-full sm:w-auto"
+            className="text-xs h-9 px-2"
           >
-            <HelpCircle className="h-4 w-4 mr-2" />
-            Need Help?
+            <HelpCircle className="h-4 w-4 mr-1.5" />
+            Help
           </Button>
+
+          {showShare && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowShare(false)}
+              className="text-xs h-9 px-2 ml-auto"
+            >
+              Cancel
+            </Button>
+          )}
         </div>
 
         {/* Help Section */}
         {showHelp && (
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6 space-y-4">
-              <p className="font-medium text-sm sm:text-base">Get Help Setting Up Protection</p>
-              <div className="grid gap-2 sm:gap-3 sm:grid-cols-3">
-                <Button asChild variant="outline" size="sm" className="justify-start">
+          <Card className="bg-primary/5 border-primary/20 mb-4 animate-in slide-in-from-top-2">
+            <CardContent className="p-3 sm:p-4 space-y-3">
+              <p className="font-medium text-sm">Get Help Setting Up Protection</p>
+              <div className="grid gap-2 grid-cols-1 sm:grid-cols-3">
+                <Button asChild variant="outline" size="sm" className="justify-start h-10 bg-white dark:bg-black/20">
                   <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                    <MessageCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">WhatsApp Group</span>
+                    <SiWhatsapp className="h-4 w-4 mr-2 text-[#25D366] flex-shrink-0" />
+                    WhatsApp
                   </a>
                 </Button>
-                <Button asChild variant="outline" size="sm" className="justify-start">
+                <Button asChild variant="outline" size="sm" className="justify-start h-10 bg-white dark:bg-black/20">
                   <a href="tel:0114399034">
                     <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">Call Us</span>
+                    Call Us
                   </a>
                 </Button>
-                <Button asChild variant="outline" size="sm" className="justify-start">
+                <Button asChild variant="outline" size="sm" className="justify-start h-10 bg-white dark:bg-black/20">
                   <a href="mailto:support@safeari.co.ke">
                     <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">Email Support</span>
+                    Email
                   </a>
                 </Button>
               </div>
@@ -324,177 +338,196 @@ const DNSSetupDialog = ({ open, onOpenChange, profileId, profileName }: DNSSetup
           </Card>
         )}
 
-        <DialogHeader className="space-y-3">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="h-8 w-8 sm:h-10 sm:w-10 bg-card rounded-full flex items-center justify-center p-2 border flex-shrink-0">
-              <img src={SafeariLogo} alt="Safeari" className="w-full h-full" />
+        {/* Share / Send to Child View */}
+        {showShare && dnsDetails ? (
+          <div className="space-y-6 py-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="mx-auto h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+                <Smartphone className="h-6 w-6 text-primary" />
+              </div>
+              <DialogTitle className="text-xl">Send Setup to {profileName}</DialogTitle>
+              <DialogDescription>
+                Open this link on {profileName}'s device to start the setup.
+              </DialogDescription>
             </div>
-            <div className="min-w-0">
-              <DialogTitle className="text-base sm:text-xl truncate">Protect {profileName}'s Device</DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm">Simple 3-step setup</DialogDescription>
+
+            <div className="flex flex-col items-center gap-6">
+              {/* QR Code */}
+              <div className="p-4 bg-white rounded-xl shadow-sm border">
+                <QRCode
+                  value={`https://safeari.co.ke/setup?dns=${dnsDetails.id}&name=${encodeURIComponent(profileName)}`}
+                  size={180}
+                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                  viewBox={`0 0 256 256`}
+                />
+              </div>
+
+              <div className="w-full max-w-xs space-y-3">
+                <p className="text-xs text-center text-muted-foreground uppercase tracking-widest font-medium">OR</p>
+
+                <Button asChild className="w-full h-11" size="lg">
+                  <a href={`sms:?body=${encodeURIComponent(`Hi! Setup protection on your phone here: https://safeari.co.ke/setup?dns=${dnsDetails.id}&name=${encodeURIComponent(profileName)}`)}`}>
+                    Send via SMS
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full h-11"
+                  onClick={() => {
+                    const url = `https://safeari.co.ke/setup?dns=${dnsDetails.id}&name=${encodeURIComponent(profileName)}`;
+                    navigator.clipboard.writeText(url);
+                    toast({ title: "Copied!", description: "Link copied to clipboard" });
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Link
+                </Button>
+              </div>
             </div>
           </div>
-        </DialogHeader>
+        ) : (
+          /* Normal Setup View */
+          <>
+            <DialogHeader className="space-y-2 text-left">
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-card rounded-xl flex items-center justify-center p-2 border shadow-sm flex-shrink-0">
+                    <img src={SafeariLogo} alt="Safeari" className="w-full h-full" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl truncate leading-tight">Protect {profileName}</DialogTitle>
+                    <DialogDescription className="text-xs sm:text-sm">3 simple steps to block harmful content</DialogDescription>
+                  </div>
+                </div>
 
-        {/* Bonus Tip for Paid Users */}
-        {subscription && subscription.tier !== 'free' && (
-          <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-            <CardContent className="pt-4">
-              <p className="text-sm text-green-900 dark:text-green-100">
-                💡 <strong>Bonus:</strong> {profileName} has multiple devices? Reuse this same profile across all of them - it's included in your plan!
-              </p>
-            </CardContent>
-          </Card>
-        )}
+                {/* Re-positioned Share Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowShare(true)}
+                  className="text-primary border-primary/20 hover:bg-primary/5 text-xs h-9 px-3 flex-shrink-0 hidden sm:flex"
+                >
+                  <Share2 className="h-3.5 w-3.5 mr-1.5" />
+                  Send to Child
+                </Button>
 
-        {/* Connection Status */}
-        <Card className={
-          connectionStatus === "connected" ? "bg-green-500/10 border-green-500/20" :
-          connectionStatus === "not-setup" ? "bg-amber-500/10 border-amber-500/20" :
-          "bg-muted/50"
-        }>
-          <CardContent className="pt-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                {connectionStatus === "connected" && <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0" />}
-                {connectionStatus === "not-setup" && <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600 flex-shrink-0" />}
-                {connectionStatus === "idle" && <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />}
-                {connectionStatus === "testing" && <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-primary flex-shrink-0" />}
-                <div className="min-w-0">
-                  <p className="font-semibold text-xs sm:text-sm truncate">
-                    {connectionStatus === "connected" && `${profileName} is Protected`}
-                    {connectionStatus === "not-setup" && "Setup Needed"}
-                    {connectionStatus === "idle" && `Ready to Protect ${profileName}`}
-                    {connectionStatus === "testing" && "Checking..."}
+                {/* Mobile Icon Only */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowShare(true)}
+                  className="text-primary border-primary/20 hover:bg-primary/5 h-9 w-9 flex-shrink-0 sm:hidden"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </DialogHeader>
+
+            {/* Connection Status - Compact */}
+            <Card className={
+              connectionStatus === "connected" ? "bg-green-500/5 border-green-500/20" :
+                connectionStatus === "not-setup" ? "bg-amber-500/5 border-amber-500/20" :
+                  "bg-muted/30"
+            }>
+              <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+                {connectionStatus === "connected" && <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />}
+                {connectionStatus === "not-setup" && <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />}
+                {connectionStatus === "idle" && <Shield className="h-5 w-5 text-primary flex-shrink-0" />}
+                {connectionStatus === "testing" && <Loader2 className="h-5 w-5 animate-spin text-primary flex-shrink-0" />}
+
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">
+                    {connectionStatus === "connected" ? "Protected" : connectionStatus === "not-setup" ? "Not Protected" : "Status"}
                   </p>
-                  <p className="text-muted-foreground text-xs truncate">
-                    {connectionStatus === "connected" && "Harmful content is being blocked"}
-                    {connectionStatus === "not-setup" && "Follow steps below"}
-                    {connectionStatus === "idle" && "Choose device type"}
-                    {connectionStatus === "testing" && "Testing connection..."}
+                  <p className="text-xs text-muted-foreground truncate">
+                    {connectionStatus === "connected" ? "Blocking harmful content" : "Setup required"}
                   </p>
                 </div>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => testConnection(false)}
-                disabled={connectionStatus === "testing"}
-                className="flex-shrink-0 w-full sm:w-auto"
-              >
-                {connectionStatus === "testing" ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Checking...
-                  </>
-                ) : (
-                  "Check Protection"
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Platform Tabs */}
-        <Tabs defaultValue="android" onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
-            {Object.entries(platformInstructions).map(([key, platform]) => {
-              const IconComponent = platform.icon;
-              return (
-                <TabsTrigger key={key} value={key} className="text-xs sm:text-sm px-2 sm:px-4">
-                  <IconComponent className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2 flex-shrink-0" />
-                  <span className="hidden sm:inline">{platform.name}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => testConnection(false)}
+                  disabled={connectionStatus === "testing"}
+                  className="h-8 px-2 text-xs"
+                >
+                  {connectionStatus === "testing" ? "Checking..." : "Check Status"}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Platform Tabs */}
+            <Tabs defaultValue="android" onValueChange={setActiveTab} className="w-full">
+              <TabsList className="w-full h-auto p-1 bg-muted/50 grid grid-cols-4 sm:grid-cols-6 mb-4">
+                {Object.entries(platformInstructions).map(([key, platform]) => {
+                  const IconComponent = platform.icon;
+                  return (
+                    <TabsTrigger key={key} value={key} className="py-2 px-1 text-[10px] sm:text-xs flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      <IconComponent className="h-4 w-4" />
+                      <span className="truncate max-w-full">{platform.name.split('/')[0]}</span>
+                    </TabsTrigger>
+                  );
+                })}
+                <TabsTrigger value="router" className="py-2 px-1 text-[10px] sm:text-xs flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Network className="h-4 w-4" />
+                  <span>Router</span>
                 </TabsTrigger>
-              );
-            })}
-            <TabsTrigger value="router" className="text-xs sm:text-sm relative px-2 sm:px-4">
-              <Network className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Router</span>
-              <span className="absolute -top-1 -right-0 sm:-right-1 bg-amber-500 text-white text-[10px] px-1 rounded">BETA</span>
-            </TabsTrigger>
-          </TabsList>
+              </TabsList>
 
-          {/* Platform Instructions */}
-          {activeTab !== "router" && currentPlatform && (
-            <TabsContent value={activeTab} className="space-y-4">
-              <div className="space-y-3">
-                {currentPlatform.steps.map((step, index) => (
-                  <InstructionStep key={index} number={index + 1} {...step} />
-                ))}
-              </div>
-            </TabsContent>
-          )}
+              {/* Platform Instructions */}
+              {activeTab !== "router" && currentPlatform && (
+                <TabsContent value={activeTab} className="space-y-3 mt-0">
+                  <div className="space-y-3">
+                    {currentPlatform.steps.map((step, index) => (
+                      <InstructionStep key={index} number={index + 1} {...step} />
+                    ))}
+                  </div>
+                </TabsContent>
+              )}
 
-          {/* Router BETA Tab */}
-          <TabsContent value="router" className="space-y-4">
-            <Card className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <Network className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600 flex-shrink-0 mt-1" />
-                  <div className="space-y-3 min-w-0">
-                    <div>
-                      <p className="font-semibold text-sm sm:text-base text-amber-900 dark:text-amber-100">Router Setup is in BETA</p>
-                      <p className="text-xs sm:text-sm text-amber-700 dark:text-amber-300 mt-1">
-                        Router setup varies by brand and model. We're working on making it easier, but for now, let us help you!
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <p className="text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-100">Get Personal Setup Help:</p>
-                      <div className="grid gap-2 sm:grid-cols-3">
-                        <Button asChild size="sm" variant="outline" className="justify-start">
-                          <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                            <MessageCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                            <span className="truncate">WhatsApp</span>
-                          </a>
-                        </Button>
-                        <Button asChild size="sm" variant="outline" className="justify-start">
-                          <a href="tel:0114399034">
-                            <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
-                            <span className="truncate">0114399034</span>
-                          </a>
-                        </Button>
-                        <Button asChild size="sm" variant="outline" className="justify-start">
-                          <a href="mailto:support@safeari.co.ke">
-                            <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-                            <span className="truncate">Email</span>
-                          </a>
+              {/* Router Tab - Simplified */}
+              <TabsContent value="router" className="mt-0">
+                <Card className="bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/50 dark:border-amber-800/50">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <Network className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div className="space-y-2 text-sm">
+                        <p className="font-medium text-amber-900 dark:text-amber-100">Router Setup (Beta)</p>
+                        <p className="text-muted-foreground text-xs">Protects all devices on your Wi-Fi, including Smart TVs and consoles.</p>
+                        <Button variant="outline" size="sm" asChild className="w-full h-9 mt-2 text-xs bg-white dark:bg-black/20">
+                          <a href={WHATSAPP_LINK} target="_blank">Contact Support for Help</a>
                         </Button>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
 
-                    <p className="text-xs text-amber-600 dark:text-amber-400">
-                      💡 <strong>Tip:</strong> Router setup protects all devices at once - phones, tablets, computers, and smart TVs!
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        <div className="flex flex-col sm:flex-row gap-2 pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 text-xs sm:text-sm">
-            I'll Do This Later
-          </Button>
-          <Button
-            onClick={() => {
-              onOpenChange(false);
-              if (connectionStatus !== "connected") {
-                toast({
-                  title: "Great!",
-                  description: `We'll check if ${profileName}'s device is protected`,
-                });
-              }
-            }}
-            className="flex-1 text-xs sm:text-sm"
-          >
-            <CheckCircle2 className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span className="truncate">Done! Device is Protected</span>
-          </Button>
-        </div>
+            <div className="flex gap-3 pt-2 mt-auto">
+              <Button variant="ghost" onClick={() => onOpenChange(false)} className="flex-1 h-11 text-muted-foreground">
+                Later
+              </Button>
+              <Button
+                onClick={() => {
+                  onOpenChange(false);
+                  if (connectionStatus !== "connected") {
+                    toast({
+                      title: "Great!",
+                      description: `We'll check protection status for ${profileName} in the background`,
+                    });
+                  }
+                }}
+                className="flex-1 h-11 font-medium"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                I've Finished Setup
+              </Button>
+            </div>
+          </>
+        )}
       </DialogContent>
-    </Dialog>
+    </Dialog >
   );
 };
 

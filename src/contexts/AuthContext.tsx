@@ -17,9 +17,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    // Clear only subscription cache (keep lastViewedProfileId for restore on next login)
-    localStorage.removeItem('cached_tier');
-
     apiLogout();
     setAuthenticated(false);
 

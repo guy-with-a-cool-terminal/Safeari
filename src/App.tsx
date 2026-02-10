@@ -24,6 +24,7 @@ import SecuritySettings from "./pages/SecuritySettings";
 import PrivacySettings from "./pages/PrivacySettings";
 import CustomLists from "./pages/CustomLists";
 import Settings from "./pages/ProfileSettings";
+import SetupPage from "./pages/SetupPage";
 import Profiles from "./pages/Profiles";
 import AccountSubscription from "./pages/AccountSubscription";
 import UsageBilling from "./pages/UsageBilling";
@@ -99,6 +100,7 @@ const App = () => (
                         <Route path="usage-billing" element={<UsageBilling />} />
                         <Route path="settings" element={<Settings />} />
                       </Route>
+                      <Route path="/setup" element={<SetupPage />} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>

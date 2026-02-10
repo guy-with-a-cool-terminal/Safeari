@@ -30,3 +30,10 @@ export {
   useDeleteProfile,
   useCreateProfile,
 } from './useProfileMutations';
+
+// Subscription mutations
+export {
+  useCreateSubscription,
+  useCancelSubscription,
+  useCancelPendingSubscription,
+} from './useSubscriptionMutations';

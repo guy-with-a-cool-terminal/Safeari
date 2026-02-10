@@ -12,14 +12,18 @@ import type { Subscription } from '@/lib/api/subscriptions';
  * - Account pages
  * - Navigation (profile limits)
  *
+ * Cache settings:
+ * - staleTime: 1 minute (reduced from 5min - subscription changes need to be reflected quickly)
+ * - cacheTime: 10 minutes (keep in cache for offline support) - v4 uses cacheTime not gcTime
+ *
  * @returns Query result with current subscription
  */
 export function useCurrentSubscription() {
-  return useQuery({
+  return useQuery<Subscription>({
     queryKey: ['subscription', 'current'],
     queryFn: getCurrentSubscription,
     enabled: isAuthenticated(), // Only fetch if user is logged in
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute
+    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 }

@@ -351,10 +351,9 @@ const Dashboard = () => {
     }
   }, [profilesLoading, profiles.length]);
 
-  // Memoize navigation items with cached tier fallback
+  // Memoize navigation items based on subscription tier
   const navItems = useMemo(() => {
-    const cachedTier = localStorage.getItem('cached_tier');
-    const tier = subscription?.tier || cachedTier || 'free';
+    const tier = subscription?.tier || 'free';
     return getNavItems(tier);
   }, [subscription?.tier]);
 

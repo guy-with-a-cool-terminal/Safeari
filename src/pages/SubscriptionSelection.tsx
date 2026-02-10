@@ -6,19 +6,20 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SafeariFullLogo  from "@/assets/logofull.svg";
+import SafeariFullLogo from "@/assets/logofull.svg";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { createSubscription } from "@/lib/api";
 import { PaymentModal } from "@/components/payment/PaymentModal";
 import { TierCard } from "@/components/subscription/TierCard";
 import { useSubscriptionTiers } from "@/hooks/useSubscriptionTiers";
 import { usePaystack } from "@/hooks/usePaystack";
+import { useCreateSubscription } from "@/hooks/mutations";
 
 const SubscriptionSelection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   const { tiers, isLoading } = useSubscriptionTiers();
+  const createSubMutation = useCreateSubscription();
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -29,7 +30,7 @@ const SubscriptionSelection = () => {
 
     try {
       if (tier.name.toLowerCase() === 'free') {
-        await createSubscription({
+        await createSubMutation.mutateAsync({
           tier: 'free',
           provider: 'manual'
         });
@@ -73,7 +74,7 @@ const SubscriptionSelection = () => {
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img src={SafeariFullLogo} alt="Safeari" className="h-7 sm:h-8 w-auto" />
           </Link>
-          
+
           <div className="flex items-center gap-2 sm:gap-3">
             <Button variant="ghost" size="sm" asChild className="text-sm">
               <Link to={isAuthenticated ? "/dashboard" : "/"}>
@@ -100,7 +101,7 @@ const SubscriptionSelection = () => {
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
             Choose Your <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Protection Plan</span>
           </h1>
-          
+
           <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             Start free, upgrade based on your family needs
           </p>

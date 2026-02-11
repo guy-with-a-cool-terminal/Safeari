@@ -31,3 +31,4 @@ export { useCurrentSubscription } from './useCurrentSubscription';
 
 // Profile hooks
 export { useProfileData } from './useProfile';
+export { useDNSDetails } from './useDNSDetails';

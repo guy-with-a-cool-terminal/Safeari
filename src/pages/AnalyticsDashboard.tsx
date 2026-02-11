@@ -31,8 +31,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useToast } from "@/hooks/use-toast";
 import { getExportLogs } from "@/lib/api";
-import { Link } from "react-router-dom";
-import DNSSetupDialog from "@/components/profile/DNSSetupDialog";
+import { Link, useNavigate } from "react-router-dom";
 import ExportConfirmDialog from "@/components/dashboard/ExportConfirmDialog";
 import {
   useAnalyticsOverview,
@@ -59,6 +58,7 @@ import { getLogsLimit } from "@/lib/analyticsUtils";
 const ParentAnalyticsDashboard = () => {
   const { currentProfile } = useProfile();
   const { subscriptionTier } = useSubscription();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   // ALL STATE HOOKS FIRST - BEFORE ANY CONDITIONALS
@@ -66,7 +66,6 @@ const ParentAnalyticsDashboard = () => {
   const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [isExporting, setIsExporting] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
-  const [showDNSSetup, setShowDNSSetup] = useState(false);
   const [activeTab, setActiveTab] = useState("screenTime");
   const [expandedDays, setExpandedDays] = useState<string[]>(["today"]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -333,18 +332,12 @@ const ParentAnalyticsDashboard = () => {
               Once they start browsing, you'll see their activity here.
             </p>
           </div>
-          <Link to="/dashboard/setup">
+          <Link to={`/dashboard/setup/${currentProfile.id}`}>
             <Button>
               View Setup Instructions
             </Button>
           </Link>
         </div>
-        <DNSSetupDialog
-          open={showDNSSetup}
-          onOpenChange={setShowDNSSetup}
-          profileId={currentProfile.id}
-          profileName={currentProfile.display_name}
-        />
       </div>
     );
   }
@@ -379,7 +372,7 @@ const ParentAnalyticsDashboard = () => {
                 </Button>
               </Link>
               <Button
-                onClick={() => setShowDNSSetup(true)}
+                onClick={() => navigate(`/dashboard/setup/${currentProfile.id}`)}
                 size="sm"
                 variant="outline"
                 className="flex-1 lg:flex-none text-xs h-9 px-4 font-bold border-border/50 hover:bg-accent/50 bg-background"
@@ -749,7 +742,7 @@ const ParentAnalyticsDashboard = () => {
               <div>
                 <h4 className="font-bold text-base tracking-tight">No protected devices</h4>
                 <p className="text-sm text-muted-foreground max-w-[240px] mb-4">Protect your family's hardware by setting up our custom DNS.</p>
-                <Button onClick={() => setShowDNSSetup(true)} variant="outline" size="sm" className="rounded-full px-6">
+                <Button onClick={() => navigate(`/dashboard/setup/${currentProfile.id}`)} variant="outline" size="sm" className="rounded-full px-6">
                   <ShieldCheck className="h-4 w-4 mr-2" />
                   Protection Guide
                 </Button>
@@ -883,12 +876,6 @@ const ParentAnalyticsDashboard = () => {
         </div>
       </SeamlessSection>
 
-      <DNSSetupDialog
-        open={showDNSSetup}
-        onOpenChange={setShowDNSSetup}
-        profileId={currentProfile.id}
-        profileName={currentProfile.display_name}
-      />
 
       <ExportConfirmDialog
         open={showExportDialog}

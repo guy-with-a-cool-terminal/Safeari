@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,6 @@ import { useReferenceData } from "@/contexts/ReferenceDataContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import type { Profile } from "@/lib/api/types";
-import DNSSetupDialog from "./DNSSetupDialog";
 import UpgradeModal from "@/components/modals/UpgradeModal";
 import { AlertCircle, Shield, Router, Smartphone, Tablet, Monitor, Gamepad2, CheckCircle2, ArrowRight, ArrowLeft, Info } from "lucide-react";
 import SafeariLogo from "@/assets/favicon.svg";
@@ -39,9 +39,9 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
   const [devices, setDevices] = useState<string[]>([]);
   const [routerLevel, setRouterLevel] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showDNSSetup, setShowDNSSetup] = useState(false);
   const [createdProfile, setCreatedProfile] = useState<Profile | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { data: referenceData, isLoading: referenceLoading } = useReferenceData();
   const { profiles, addProfileOptimistically } = useProfile();
@@ -65,7 +65,7 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
 
   const agePresetOptions = useMemo(() => {
     if (!referenceData?.age_presets) return [];
-    
+
     return Object.entries(referenceData.age_presets).map(([key, config]) => ({
       value: key,
       label: config.name,
@@ -101,8 +101,8 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
   const protectionSummary = useMemo(() => {
     if (!selectedPresetConfig) return null;
 
-    if (agePreset === 'custom'){
-      return {isCustom: true};
+    if (agePreset === 'custom') {
+      return { isCustom: true };
     }
 
     const securityCount = Object.values(selectedPresetConfig.security).filter(Boolean).length;
@@ -162,7 +162,7 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
       onOpenChange(false);
       return;
     }
-    
+
     if (!name.trim()) {
       toast({
         title: "Just need a name",
@@ -197,15 +197,17 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
 
       setCreatedProfile(realProfile);
       onOpenChange(false);
-      setShowDNSSetup(true);
       onProfileCreated(realProfile);
-      
+
+      // Navigate to the new setup page
+      navigate(`/dashboard/setup/${realProfile.id}`);
+
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail ||
-                          error.response?.data?.message ||
-                          error.response?.data?.error ||
-                          error.message ||
-                          "Something went wrong. Please try again.";
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong. Please try again.";
 
       // If it's a profile limit error, show upgrade modal
       if (errorMessage.toLowerCase().includes('tier limit') || errorMessage.toLowerCase().includes('profile limit')) {
@@ -258,9 +260,8 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
               {[1, 2, 3, 4].map(s => (
                 <div
                   key={s}
-                  className={`h-1.5 flex-1 rounded-full transition-colors ${
-                    s <= step ? 'bg-primary' : 'bg-muted'
-                  }`}
+                  className={`h-1.5 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-muted'
+                    }`}
                 />
               ))}
             </div>
@@ -335,13 +336,12 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
                     return (
                       <Card
                         key={preset.value}
-                        className={`cursor-pointer transition-all hover:shadow-md ${
-                          agePreset === preset.value
-                            ? 'border-primary border-2 bg-primary/5'
-                            : isRecommended
+                        className={`cursor-pointer transition-all hover:shadow-md ${agePreset === preset.value
+                          ? 'border-primary border-2 bg-primary/5'
+                          : isRecommended
                             ? 'border-primary/60 border-2 bg-primary/5'
                             : 'border hover:border-primary/50'
-                        }`}
+                          }`}
                         onClick={() => setAgePreset(preset.value)}
                       >
                         <CardContent className="pt-4">
@@ -382,11 +382,10 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
                     return (
                       <Card
                         key={device.id}
-                        className={`cursor-pointer transition-all hover:shadow-md ${
-                          isSelected
-                            ? 'border-primary border-2 bg-primary/5'
-                            : 'border hover:border-primary/50'
-                        }`}
+                        className={`cursor-pointer transition-all hover:shadow-md ${isSelected
+                          ? 'border-primary border-2 bg-primary/5'
+                          : 'border hover:border-primary/50'
+                          }`}
                         onClick={() => toggleDevice(device.id)}
                       >
                         <CardContent className="pt-6 pb-6 flex flex-col items-center gap-3">
@@ -574,26 +573,16 @@ const CreateProfileDialog = ({ open, onOpenChange, onProfileCreated }: CreatePro
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {createdProfile && (
-        <DNSSetupDialog
-          open={showDNSSetup}
-          onOpenChange={(open) => {
-            setShowDNSSetup(open);
-            if (!open) setCreatedProfile(null);
-          }}
-          profileId={createdProfile.id}
-          profileName={createdProfile.display_name}
+        <UpgradeModal
+          open={showUpgradeModal}
+          onOpenChange={setShowUpgradeModal}
+          feature="Additional Profiles"
+          currentTier={currentTier}
+          requiredTier={currentTier === "free" ? "basic" : currentTier === "basic" ? "family" : "premium"}
         />
       )}
-
-      <UpgradeModal
-        open={showUpgradeModal}
-        onOpenChange={setShowUpgradeModal}
-        feature="Additional Profiles"
-        currentTier={currentTier}
-        requiredTier={currentTier === "free" ? "basic" : currentTier === "basic" ? "family" : "premium"}
-      />
     </>
   );
 };

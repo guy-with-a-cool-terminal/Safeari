@@ -99,8 +99,8 @@ const App = () => (
                         <Route path="lists" element={<CustomLists />} />
                         <Route path="usage-billing" element={<UsageBilling />} />
                         <Route path="settings" element={<Settings />} />
+                        <Route path="setup/:profileId" element={<SetupPage />} />
                       </Route>
-                      <Route path="/setup" element={<SetupPage />} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>

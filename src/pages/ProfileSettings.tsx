@@ -22,7 +22,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import DNSSetupDialog from "@/components/profile/DNSSetupDialog";
 import SeamlessSection from "@/components/ui/SeamlessSection";
 
 /**
@@ -43,7 +42,6 @@ const ProfileSettings = () => {
     age_preset: "teens",
     is_router_level: false,
   });
-  const [dnsSetupOpen, setDnsSetupOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Redirect if no profile selected
@@ -245,7 +243,7 @@ const ProfileSettings = () => {
             <Button
               variant="default"
               className="h-11 px-6 rounded-full font-bold bg-primary hover:bg-primary/90 transition-all"
-              onClick={() => setDnsSetupOpen(true)}
+              onClick={() => navigate(`/dashboard/setup/${currentProfile.id}`)}
             >
               View Setup Guide
             </Button>
@@ -281,13 +279,6 @@ const ProfileSettings = () => {
         </div>
       </SeamlessSection>
 
-      {/* DNS Setup Dialog */}
-      <DNSSetupDialog
-        open={dnsSetupOpen}
-        onOpenChange={setDnsSetupOpen}
-        profileId={currentProfile.id}
-        profileName={currentProfile.display_name}
-      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

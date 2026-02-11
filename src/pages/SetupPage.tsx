@@ -1,12 +1,35 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Copy, CheckCircle2, Shield, Smartphone, Monitor, ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+    Copy,
+    CheckCircle2,
+    AlertCircle,
+    Loader2,
+    Shield,
+    Smartphone,
+    Monitor,
+    Network,
+    HelpCircle,
+    Phone,
+    Mail,
+    ExternalLink,
+    Info,
+    Check
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import SafeariLogo from "@/assets/favicon.svg";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { getDeviceStats } from "@/lib/api";
+import { WHATSAPP_LINK } from "@/components/feedback/WhatsAppCTA";
+import { SiWhatsapp } from "@icons-pack/react-simple-icons";
+import { useProfileData, useDNSDetails } from "@/hooks/queries";
+import { useProfile } from "@/contexts/ProfileContext";
+import SeamlessSection from "@/components/ui/SeamlessSection";
+// Reusing InstructionStepRow for consistent styling
 
 interface InstructionStep {
     title: string;
@@ -15,350 +38,587 @@ interface InstructionStep {
     copyLabel?: string;
     linkUrl?: string;
     linkText?: string;
+    isBrandPath?: boolean;
 }
 
-const SetupPage = () => {
-    const [searchParams] = useSearchParams();
-    const [activeTab, setActiveTab] = useState("android");
-    const [verificationStatus, setVerificationStatus] = useState<"idle" | "checking" | "verified" | "failed">("idle");
-    const [setupStarted, setSetupStarted] = useState(false);
+interface PlatformConfig {
+    name: string;
+    icon: any;
+    steps: InstructionStep[];
+    hasBrands?: boolean;
+}
+
+const InstructionStepRow = ({ number, title, description, copyText, copyLabel, linkUrl, linkText }: InstructionStep & { number: number }) => {
     const { toast } = useToast();
 
-    const dnsId = searchParams.get("dns");
-    const profileName = searchParams.get("name") || "Device";
-
-    // Auto-detect device type
-    useEffect(() => {
-        const ua = navigator.userAgent.toLowerCase();
-        if (ua.includes("android")) {
-            setActiveTab("android");
-        } else if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("ipod")) {
-            setActiveTab("ios");
-        } else if (ua.includes("mac")) {
-            setActiveTab("mac");
-        } else if (ua.includes("windows")) {
-            setActiveTab("windows");
-        }
-    }, []);
-
-    // Auto-verify protection status when setup is started
-    useEffect(() => {
-        if (!setupStarted) return;
-
-        let attempts = 0;
-        const maxAttempts = 12; // 60 seconds total (12 * 5 seconds)
-
-        const checkProtection = async () => {
-            try {
-                const response = await fetch('https://test.nextdns.io', { mode: 'cors' });
-                const text = await response.text();
-
-                // Check if NextDNS is active and it's our profile
-                if (text.includes(dnsId || '')) {
-                    setVerificationStatus("verified");
-                    toast({
-                        title: "🎉 Protection Active!",
-                        description: `${profileName} is now protected from harmful content`,
-                    });
-                    return true;
-                }
-            } catch (error) {
-                console.log("Verification check:", error);
-            }
-            return false;
-        };
-
-        const verifyInterval = setInterval(async () => {
-            attempts++;
-            setVerificationStatus("checking");
-
-            const isVerified = await checkProtection();
-
-            if (isVerified || attempts >= maxAttempts) {
-                clearInterval(verifyInterval);
-                if (!isVerified) {
-                    setVerificationStatus("failed");
-                }
-            }
-        }, 5000);
-
-        // Initial check
-        checkProtection();
-
-        return () => clearInterval(verifyInterval);
-    }, [setupStarted, dnsId, profileName, toast]);
-
-    const handleStartSetup = () => {
-        // Copy DNS address
-        if (dnsId) {
-            navigator.clipboard.writeText(`${dnsId}.dns.nextdns.io`);
+    const handleCopy = () => {
+        if (copyText) {
+            navigator.clipboard.writeText(copyText);
             toast({
-                title: "Address Copied!",
-                description: "Paste this in Private DNS settings",
-                duration: 3000,
+                title: "Copied!",
+                description: `${copyLabel || "Text"} copied to clipboard`,
             });
         }
-
-        // Mark setup as started for verification
-        setSetupStarted(true);
-
-        // Try to open settings (may or may not work depending on browser)
-        setTimeout(() => {
-            window.location.href = "intent:#Intent;action=android.settings.PRIVATE_DNS_SETTINGS;end";
-        }, 500);
     };
 
-    const handleCopy = (text: string, label: string) => {
-        navigator.clipboard.writeText(text);
-        toast({
-            title: "Copied!",
-            description: `${label} copied to clipboard`,
-        });
-    };
-
-    const InstructionStep = ({ number, title, description, copyText, copyLabel, linkUrl, linkText }: InstructionStep & { number: number }) => (
-        <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border">
-            <div className="h-7 w-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+    return (
+        <div className="flex items-start gap-4 py-6 border-b border-border/10 last:border-0 group">
+            <div className="h-7 w-7 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors group-hover:bg-primary/20">
                 {number}
             </div>
-            <div className="flex-1 space-y-2 min-w-0">
-                <p className="font-medium text-sm">{title}</p>
-                <p className="text-muted-foreground text-sm">{description}</p>
+            <div className="flex-1 space-y-3 min-w-0">
+                <div className="space-y-1">
+                    <p className="font-bold text-base leading-tight">{title}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+                </div>
 
                 {linkUrl && (
-                    <Button asChild variant="outline" size="sm" className="w-full h-11">
+                    <Button asChild variant="outline" size="sm" className="h-9 rounded-full font-bold border-border/40 hover:bg-accent transition-all">
                         <a href={linkUrl} target="_blank" rel="noopener noreferrer">
                             {linkText || "Open Setup"}
-                            <ExternalLink className="h-4 w-4 ml-2 flex-shrink-0" />
+                            <ExternalLink className="h-3.5 w-3.5 ml-2" />
                         </a>
                     </Button>
                 )}
 
                 {copyText && (
-                    <div className="flex gap-2">
-                        <Input
-                            value={copyText}
-                            readOnly
-                            className="font-mono text-xs bg-background flex-1 min-w-0"
-                        />
+                    <div className="flex flex-col sm:flex-row gap-2 max-w-lg">
+                        <code className="flex-1 px-3 py-2 bg-accent/30 rounded-lg font-mono text-sm border border-border/20 break-all">
+                            {copyText}
+                        </code>
                         <Button
                             size="sm"
-                            variant="outline"
-                            onClick={() => handleCopy(copyText, copyLabel || "Text")}
-                            className="flex-shrink-0 h-10 w-10 p-0"
+                            variant="secondary"
+                            onClick={handleCopy}
+                            className="h-10 px-4 rounded-lg font-bold border-none transition-all hover:bg-primary hover:text-white"
                         >
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-3.5 w-3.5 mr-2" />
+                            Copy
                         </Button>
                     </div>
                 )}
             </div>
         </div>
     );
+};
 
-    if (!dnsId) {
+const SetupPage = () => {
+    const { profileId } = useParams<{ profileId: string }>();
+    const navigate = useNavigate();
+    const { toast } = useToast();
+    const { currentProfile } = useProfile();
+
+    // React Query Hooks
+    // Priority: Params if provided, otherwise context
+    const pid = profileId ? parseInt(profileId) : currentProfile?.id;
+    const { data: profile, isLoading: profileLoading } = useProfileData(pid);
+    const { data: dnsDetails, isLoading: dnsLoading } = useDNSDetails(pid);
+
+    const [connectionStatus, setConnectionStatus] = useState<"idle" | "testing" | "connected" | "not-setup">("idle");
+    const [activePlatform, setActivePlatform] = useState("android");
+    const [hasSelectedPlatform, setHasSelectedPlatform] = useState(false);
+    const [activeBrand, setActiveBrand] = useState<string | null>(null);
+    const [showHelp, setShowHelp] = useState(false);
+
+    const isLoading = profileLoading || dnsLoading;
+
+    // Sync URL with context if they differ
+    useEffect(() => {
+        if (currentProfile && profileId && parseInt(profileId) !== currentProfile.id) {
+            navigate(`/dashboard/setup/${currentProfile.id}`, { replace: true });
+        }
+    }, [currentProfile, profileId, navigate]);
+
+    const testConnection = useCallback(async (isBackground = false) => {
+        if (!pid) return;
+        if (!isBackground) setConnectionStatus("testing");
+
+        try {
+            const devices = await getDeviceStats(pid, '1h');
+            const hasActiveQueries = devices.some(device => device.queries > 0);
+
+            if (hasActiveQueries) {
+                setConnectionStatus("connected");
+                if (!isBackground) {
+                    toast({
+                        title: "✓ Connected!",
+                        description: `${profile?.display_name || "Device"} protection is active`,
+                    });
+                }
+            } else {
+                setConnectionStatus("not-setup");
+                if (!isBackground) {
+                    toast({
+                        variant: "destructive",
+                        title: "Not connected yet",
+                        description: "Please ensure settings are saved on the child's device.",
+                    });
+                }
+            }
+        } catch (error) {
+            setConnectionStatus("not-setup");
+        }
+    }, [pid, profile?.display_name, toast]);
+
+    useEffect(() => {
+        setConnectionStatus("idle");
+        setHasSelectedPlatform(false);
+        setShowHelp(false);
+        setActiveBrand(null);
+    }, [pid]);
+
+    useEffect(() => {
+        if (profile && dnsDetails && profile.id === pid) {
+            testConnection(true);
+        }
+    }, [profile, dnsDetails, testConnection, pid]);
+
+    // Auto-detect platform
+    useEffect(() => {
+        if (hasSelectedPlatform) return;
+        const ua = navigator.userAgent.toLowerCase();
+        let detected = "android";
+        if (ua.includes("android")) detected = "android";
+        else if (ua.includes("iphone") || ua.includes("ipad")) detected = "ios";
+        else if (ua.includes("windows")) detected = "windows";
+        else if (ua.includes("mac")) detected = "mac";
+
+        if (detected !== activePlatform) {
+            setActivePlatform(detected);
+        }
+    }, [hasSelectedPlatform, activePlatform]);
+
+    const androidBrands: Record<string, string[]> = {
+        samsung: [
+            "Open Settings and tap 'Connections'",
+            "Tap 'More connection settings' at the bottom",
+            "Select 'Private DNS'",
+            "Choose 'Private DNS provider hostname'"
+        ],
+        pixel: [
+            "Open Settings and tap 'Network & internet'",
+            "Tap 'Private DNS' (you may need to scroll down)",
+            "Select 'Private DNS provider hostname'"
+        ],
+        xiaomi: [
+            "Open Settings and tap 'Connection & sharing'",
+            "Select 'Private DNS'",
+            "Choose 'Private DNS provider hostname'"
+        ],
+        oneplus: [
+            "Open Settings and tap 'Connection & Sharing'",
+            "Select 'Private DNS'",
+            "Choose 'Designated private DNS'"
+        ],
+        other: [
+            "Open Settings on your child's phone",
+            "Tap the search bar at the top and type 'Private DNS'",
+            "Select 'Private DNS' from the results",
+            "Choose 'Private DNS provider hostname'"
+        ]
+    };
+
+    const dotHostname = dnsDetails?.id ? `${dnsDetails.id}.dns.nextdns.io` : "";
+    const configProfileUrl = dnsDetails?.id ? `https://apple.nextdns.io/?profile=${dnsDetails.id}` : "";
+
+    const platforms: Record<string, PlatformConfig> = useMemo(() => ({
+        android: {
+            name: "Android",
+            icon: Smartphone,
+            hasBrands: true,
+            steps: activeBrand
+                ? [
+                    ...androidBrands[activeBrand as keyof typeof androidBrands].map((stepText) => ({
+                        title: stepText,
+                        description: "Follow this on your phone's screen."
+                    })),
+                    {
+                        title: "Enter Protection Address",
+                        description: "Type in your unique address into the input field:",
+                        copyText: dotHostname,
+                        copyLabel: "Protection Address"
+                    },
+                    {
+                        title: "Save",
+                        description: "Tap 'Save'. Protection is now active on all Wi-Fi and mobile networks."
+                    }
+                ]
+                : [
+                    {
+                        title: "Open DNS Settings",
+                        description: "Open Settings on your child's phone and search for 'Private DNS' in the top search bar.",
+                    },
+                    {
+                        title: "Enter Protection Address",
+                        description: "Select 'Private DNS provider hostname' and type in your unique address:",
+                        copyText: dotHostname,
+                        copyLabel: "Protection Address"
+                    },
+                    {
+                        title: "Save",
+                        description: "Tap 'Save'. Protection is now active on all Wi-Fi and mobile networks."
+                    }
+                ]
+        },
+        ios: {
+            name: "iPhone",
+            icon: Smartphone,
+            steps: [
+                {
+                    title: "Install Protection Profile",
+                    description: "Tap below to open Apple's secure setup page. This will download a small configuration file to your device.",
+                    linkUrl: configProfileUrl,
+                    linkText: "Download Profile"
+                },
+                {
+                    title: "Enable in Settings",
+                    description: "Once downloaded, open Settings → Profile Downloaded (near the top) → Tap 'Install' and follow the prompts."
+                },
+                {
+                    title: "Finish Setup",
+                    description: "You're all set! All apps and websites on this device are now guarded by Safeari."
+                }
+            ]
+        },
+        windows: {
+            name: "Windows",
+            icon: Monitor,
+            steps: [
+                {
+                    title: "Download Desktop App",
+                    description: "Download and install our setup utility for Windows PCs.",
+                    linkUrl: "https://nextdns.io/download/windows/stable",
+                    linkText: "Download for Windows"
+                },
+                {
+                    title: "Enter Configuration ID",
+                    description: "After installing, right-click the shield icon in your taskbar → Settings → Enter your unique ID:",
+                    copyText: dnsDetails?.id || "",
+                    copyLabel: "Configuration ID"
+                },
+                {
+                    title: "Activate",
+                    description: "Right-click the icon again and select 'Enable'. Your PC is now fully secured."
+                }
+            ]
+        },
+        mac: {
+            name: "macOS",
+            icon: Monitor,
+            steps: [
+                {
+                    title: "Run Setup Command",
+                    description: "Open the 'Terminal' app on your Mac and copy/paste this automated setup command:",
+                    copyText: 'sh -c "$(curl -sL https://nextdns.io/install)"',
+                    copyLabel: "Setup Command"
+                },
+                {
+                    title: "Follow Prompts",
+                    description: "The automated installer will guide you through a few simple choices. Just follow along."
+                },
+                {
+                    title: "Secure",
+                    description: "Your Mac is now fully protected against harmful content."
+                }
+            ]
+        },
+        linux: {
+            name: "Linux",
+            icon: Monitor,
+            steps: [
+                {
+                    title: "Install Service",
+                    description: "Open your terminal and run the following command to begin protection setup:",
+                    copyText: 'sh -c "$(curl -sL https://nextdns.io/install)"',
+                    copyLabel: "Setup Command"
+                },
+                {
+                    title: "Complete Setup",
+                    description: "Follow the guided process in your terminal to finish the installation."
+                },
+                {
+                    title: "Guarded",
+                    description: "Safeari protection is now active on your Linux system."
+                }
+            ]
+        },
+        router: {
+            name: "Router",
+            icon: Network,
+            steps: [
+                {
+                    title: "Notice",
+                    description: "Router setup is slightly more technical and varies by brand. We recommend getting help from our team."
+                },
+                {
+                    title: "Get Expert Help",
+                    description: "Message our support team on WhatsApp for step-by-step guidance for your specific router model.",
+                    linkUrl: WHATSAPP_LINK,
+                    linkText: "WhatsApp Support"
+                },
+            ]
+        }
+    }), [configProfileUrl, dotHostname, dnsDetails?.id, activeBrand]);
+
+    if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background p-4">
-                <Card className="w-full max-w-md text-center p-6">
-                    <div className="mx-auto h-12 w-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mb-4">
-                        <AlertCircle className="h-6 w-6 text-amber-600" />
-                    </div>
-                    <h1 className="text-xl font-bold mb-2">Invalid Setup Link</h1>
-                    <p className="text-muted-foreground text-sm">Please check the link and try again.</p>
-                </Card>
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-muted-foreground font-medium">You're just one step away from providing your child with a safer internet experience...</p>
             </div>
         );
     }
 
-    const dotHostname = `${dnsId}.dns.nextdns.io`;
-    const configProfileUrl = `https://apple.nextdns.io/?profile=${dnsId}`;
-    const isAndroid = /android/i.test(navigator.userAgent);
+    if (!profile || !dnsDetails) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-4">
+                <div className="h-16 w-16 bg-muted/30 rounded-full flex items-center justify-center mb-4">
+                    <AlertCircle className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-bold mb-2 tracking-tight">Setup Configuration Unavailable</h3>
+                <p className="text-muted-foreground max-w-md mb-8">We couldn't retrieve the setup details for this profile. Please try refreshing the page.</p>
+                <Button onClick={() => navigate("/dashboard")} className="h-12 px-8 rounded-full font-bold">
+                    Return to Dashboard
+                </Button>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 flex justify-center">
-            <div className="w-full max-w-lg space-y-6">
-
-                {/* Header */}
-                <div className="text-center space-y-3">
-                    <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-                        <img src={SafeariLogo} alt="Safeari" className="w-9 h-9" />
-                    </div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Protect {profileName}</h1>
-                    <p className="text-muted-foreground text-sm">
-                        Block harmful content in 3 simple steps
+        <div className="max-w-5xl lg:max-w-7xl mx-auto space-y-12 pb-24">
+            {/* Page Header */}
+            <div className="flex flex-col gap-1">
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Set up {profile.display_name}'s Device</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <p className="text-muted-foreground text-base sm:text-lg leading-relaxed max-w-2xl">
+                        Follow these simple steps on {profile.display_name}'s device to enable full parental filtering.
                     </p>
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setShowHelp(!showHelp)}
+                        className="bg-primary/5 hover:bg-primary/10 border-none h-9 px-4 text-primary font-bold transition-all rounded-full self-start"
+                    >
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        {showHelp ? "Hide Help" : "Need Help?"}
+                    </Button>
                 </div>
+            </div>
 
-                {/* Verification Status Card */}
-                {verificationStatus !== "idle" && (
-                    <Card className={
-                        verificationStatus === "verified"
-                            ? "bg-green-500/10 border-green-500/20 animate-in fade-in slide-in-from-top-2"
-                            : verificationStatus === "checking"
-                                ? "bg-blue-500/10 border-blue-500/20"
-                                : "bg-amber-500/10 border-amber-500/20"
-                    }>
-                        <CardContent className="pt-4 pb-4 flex items-center gap-3">
-                            {verificationStatus === "verified" && <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0" />}
-                            {verificationStatus === "checking" && <Loader2 className="h-6 w-6 animate-spin text-blue-600 flex-shrink-0" />}
-                            {verificationStatus === "failed" && <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0" />}
-
-                            <div className="flex-1">
-                                <p className="font-semibold text-sm">
-                                    {verificationStatus === "verified" && "Protection Active!"}
-                                    {verificationStatus === "checking" && "Checking Protection..."}
-                                    {verificationStatus === "failed" && "Not Protected Yet"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    {verificationStatus === "verified" && "Harmful content is being blocked"}
-                                    {verificationStatus === "checking" && "Complete setup steps below"}
-                                    {verificationStatus === "failed" && "Make sure you completed all steps"}
+            {/* Help Alert */}
+            {showHelp && (
+                <div className="bg-primary/5 border-y border-primary/10 animate-in slide-in-from-top-4 duration-300 -mx-4 sm:mx-0">
+                    <div className="p-6 max-w-7xl mx-auto">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <div className="space-y-1">
+                                <h3 className="font-bold text-lg tracking-tight">Need a hand with setup?</h3>
+                                <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
+                                    Our support team is ready to guide you through the process for any device.
                                 </p>
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Android Quick Setup (only show on Android devices) */}
-                {isAndroid && !setupStarted && (
-                    <Card className="bg-primary/5 border-primary/20">
-                        <CardContent className="pt-6 pb-6 space-y-4">
-                            <div className="text-center space-y-2">
-                                <Shield className="h-10 w-10 text-primary mx-auto" />
-                                <p className="font-medium">Quick Android Setup</p>
-                                <p className="text-xs text-muted-foreground">
-                                    We'll copy the address and try to open your settings
-                                </p>
+                            <div className="flex flex-wrap gap-2">
+                                <Button asChild variant="outline" className="h-9 px-4 rounded-full font-bold bg-background/50 hover:bg-background border-border/40 transition-all text-xs">
+                                    <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                                        <SiWhatsapp className="h-3.5 w-3.5 mr-2 text-[#25D366]" />
+                                        WhatsApp
+                                    </a>
+                                </Button>
+                                <Button asChild variant="outline" className="h-9 px-4 rounded-full font-bold bg-background/50 hover:bg-background border-border/40 transition-all text-xs">
+                                    <a href="tel:0114399034">
+                                        <Phone className="h-3.5 w-3.5 mr-2" />
+                                        Call Support
+                                    </a>
+                                </Button>
+                                <Button asChild variant="outline" className="h-9 px-4 rounded-full font-bold bg-background/50 hover:bg-background border-border/40 transition-all text-xs">
+                                    <a href="mailto:support@safeari.co.ke">
+                                        <Mail className="h-3.5 w-3.5 mr-2" />
+                                        Email
+                                    </a>
+                                </Button>
                             </div>
-                            <Button
-                                size="lg"
-                                className="w-full h-12 text-base font-semibold"
-                                onClick={handleStartSetup}
-                            >
-                                Start Setup
-                            </Button>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Platform Tabs */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="w-full h-auto p-1 bg-muted/50 grid grid-cols-4">
-                        <TabsTrigger value="android" className="py-2.5 text-xs data-[state=active]:bg-background" aria-label="Android">
-                            <Smartphone className="h-4 w-4" />
-                            <span className="hidden sm:inline ml-2">Android</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="ios" className="py-2.5 text-xs data-[state=active]:bg-background" aria-label="iPhone/iPad">
-                            <Smartphone className="h-4 w-4" />
-                            <span className="hidden sm:inline ml-2">iOS</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="windows" className="py-2.5 text-xs data-[state=active]:bg-background" aria-label="Windows">
-                            <Monitor className="h-4 w-4" />
-                            <span className="hidden sm:inline ml-2">Windows</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="mac" className="py-2.5 text-xs data-[state=active]:bg-background" aria-label="Mac">
-                            <Monitor className="h-4 w-4" />
-                            <span className="hidden sm:inline ml-2">Mac</span>
-                        </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="android" className="space-y-3 mt-6">
-                        <InstructionStep
-                            number={1}
-                            title="Open Settings"
-                            description="Go to Settings → Network & internet → Private DNS"
-                        />
-                        <InstructionStep
-                            number={2}
-                            title="Enter Address"
-                            description="Select 'Private DNS provider hostname' and paste:"
-                            copyText={dotHostname}
-                            copyLabel="Protection Address"
-                        />
-                        <InstructionStep
-                            number={3}
-                            title="Save & Done!"
-                            description="Tap Save. Protection will activate automatically."
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="ios" className="space-y-3 mt-6">
-                        <InstructionStep
-                            number={1}
-                            title="Download Profile"
-                            description="Tap below to download the protection profile"
-                            linkUrl={configProfileUrl}
-                            linkText="Download Profile"
-                        />
-                        <InstructionStep
-                            number={2}
-                            title="Install Profile"
-                            description="Go to Settings → Profile Downloaded → Install"
-                        />
-                        <InstructionStep
-                            number={3}
-                            title="Done!"
-                            description="Protection is now active on your device"
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="windows" className="space-y-3 mt-6">
-                        <InstructionStep
-                            number={1}
-                            title="Download App"
-                            description="Download the protection app for Windows"
-                            linkUrl="https://nextdns.io/download/windows/stable"
-                            linkText="Download for Windows"
-                        />
-                        <InstructionStep
-                            number={2}
-                            title="Enter Configuration ID"
-                            description="Right-click tray icon → Settings → Enter ID:"
-                            copyText={dnsId}
-                            copyLabel="Configuration ID"
-                        />
-                        <InstructionStep
-                            number={3}
-                            title="Enable Protection"
-                            description="Right-click tray icon → Enable"
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="mac" className="space-y-3 mt-6">
-                        <InstructionStep
-                            number={1}
-                            title="Run Setup Command"
-                            description="Open Terminal and paste this command:"
-                            copyText='sh -c "$(curl -sL https://nextdns.io/install)"'
-                            copyLabel="Setup Command"
-                        />
-                        <InstructionStep
-                            number={2}
-                            title="Follow Installer"
-                            description="The installer will guide you through the setup"
-                        />
-                        <InstructionStep
-                            number={3}
-                            title="Done!"
-                            description="Your Mac is now protected"
-                        />
-                    </TabsContent>
-                </Tabs>
-
-                {/* Footer Help */}
-                <Card className="bg-muted/30">
-                    <CardContent className="pt-4 pb-4 text-center">
-                        <p className="text-xs text-muted-foreground mb-2">Need help?</p>
-                        <div className="flex gap-2 justify-center">
-                            <Button variant="outline" size="sm" asChild>
-                                <a href="tel:0114399034">Call Support</a>
-                            </Button>
-                            <Button variant="outline" size="sm" asChild>
-                                <a href="mailto:support@safeari.co.ke">Email Us</a>
-                            </Button>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
+            )}
 
+            {/* Connection Status Section - Compact & Clean */}
+            <div className={cn(
+                "transition-all duration-500 border-y -mx-4 sm:mx-0",
+                connectionStatus === "connected" ? "bg-green-500/5 border-green-500/10" :
+                    connectionStatus === "not-setup" ? "bg-amber-500/5 border-amber-500/10" :
+                        "bg-card/20 border-border/40"
+            )}>
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4 max-w-7xl mx-auto">
+                    <div className={cn(
+                        "h-10 w-10 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-500",
+                        connectionStatus === "connected" ? "bg-green-500 text-white" :
+                            connectionStatus === "not-setup" ? "bg-amber-500 text-white" :
+                                "bg-primary/10 text-primary"
+                    )}>
+                        {connectionStatus === "connected" && <CheckCircle2 className="h-5 w-5" />}
+                        {connectionStatus === "not-setup" && <AlertCircle className="h-5 w-5" />}
+                        {(connectionStatus === "idle" || connectionStatus === "testing") &&
+                            <Shield className={cn("h-5 w-5", connectionStatus === "testing" && "animate-pulse")} />
+                        }
+                    </div>
+
+                    <div className="flex-1 text-center sm:text-left space-y-0.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <h3 className="font-bold text-sm tracking-tight">
+                                {connectionStatus === "connected" ? "Connection Active" :
+                                    connectionStatus === "not-setup" ? "Awaiting Connection" :
+                                        connectionStatus === "testing" ? "Verifying..." : "Connection Status"}
+                            </h3>
+                            {connectionStatus === "connected" && (
+                                <Badge className="w-fit self-center sm:self-auto bg-green-500/20 hover:bg-green-500/20 text-green-600 border-none font-bold uppercase text-[9px] tracking-widest px-1.5 h-4">
+                                    Protected
+                                </Badge>
+                            )}
+                        </div>
+                        <p className="text-muted-foreground text-[13px] leading-relaxed max-w-2xl">
+                            {connectionStatus === "connected" ? `${profile.display_name} is now protected.` :
+                                connectionStatus === "not-setup" ? "Follow the steps below, then check status." :
+                                    "Checking for connection signals..."}
+                        </p>
+                    </div>
+
+                    <Button
+                        onClick={() => testConnection(false)}
+                        disabled={connectionStatus === "testing"}
+                        variant={connectionStatus === "connected" ? "outline" : "default"}
+                        className="w-full sm:w-auto min-w-[120px] h-9 rounded-full font-bold shadow-sm transition-all text-[11px] uppercase tracking-wider"
+                    >
+                        {connectionStatus === "testing" ? (
+                            <>
+                                <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                                Checking...
+                            </>
+                        ) : (
+                            connectionStatus === "connected" ? "Re-Verify" : "Check Status"
+                        )}
+                    </Button>
+                </div>
+            </div>
+
+            {/* Setup Instructions Section */}
+            <SeamlessSection
+                title="Device Selection"
+                description="Choose the device you want to protect to see specific instructions."
+                bleeding={false}
+            >
+                <div className="p-1 sm:p-0">
+                    <Tabs
+                        value={activePlatform}
+                        onValueChange={(val) => {
+                            setActivePlatform(val);
+                            setHasSelectedPlatform(true);
+                        }}
+                        className="w-full"
+                    >
+                        <TabsList className="w-full h-auto p-0 bg-transparent grid grid-cols-3 sm:grid-cols-6 mb-12 overflow-x-auto no-scrollbar gap-2">
+                            {Object.entries(platforms).map(([key, platform]) => {
+                                const Icon = platform.icon;
+                                const isActive = activePlatform === key;
+                                return (
+                                    <TabsTrigger
+                                        key={key}
+                                        value={key}
+                                        className={cn(
+                                            "py-3 px-2 flex flex-col items-center gap-2 rounded-md transition-all h-full border border-transparent",
+                                            "data-[state=active]:bg-accent/40 data-[state=active]:border-border/40 data-[state=active]:text-primary",
+                                            "text-muted-foreground hover:text-foreground hover:bg-accent/20"
+                                        )}
+                                    >
+                                        <Icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground")} />
+                                        <div className="flex flex-col items-center gap-0.5">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">{platform.name}</span>
+                                            {key === "router" && (
+                                                <span className="text-[8px] font-black text-primary px-1 rounded-sm bg-primary/10 leading-none py-0.5">BETA</span>
+                                            )}
+                                        </div>
+                                    </TabsTrigger>
+                                );
+                            })}
+                        </TabsList>
+
+                        {Object.entries(platforms).map(([key, platform]) => (
+                            <TabsContent key={key} value={key} className="mt-0 space-y-8 animate-in fade-in duration-200">
+                                {platform.hasBrands && (
+                                    <div className="space-y-6 pb-4">
+                                        <div className="flex flex-col gap-1">
+                                            <h4 className="text-sm font-bold tracking-tight">Step 1: Check your phone brand (Optional)</h4>
+                                            <p className="text-xs text-muted-foreground">This helps us show you exactly which buttons to press.</p>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button
+                                                variant={activeBrand === null ? "secondary" : "ghost"}
+                                                size="sm"
+                                                onClick={() => setActiveBrand(null)}
+                                                className={cn(
+                                                    "rounded-md px-4 h-8 text-xs font-bold transition-all",
+                                                    activeBrand === null && "bg-primary/10 text-primary hover:bg-primary/20"
+                                                )}
+                                            >
+                                                General Android
+                                            </Button>
+                                            {Object.keys(androidBrands).map((brand) => (
+                                                brand !== "other" && (
+                                                    <Button
+                                                        key={brand}
+                                                        variant={activeBrand === brand ? "secondary" : "ghost"}
+                                                        size="sm"
+                                                        onClick={() => setActiveBrand(brand)}
+                                                        className={cn(
+                                                            "capitalize rounded-md px-4 h-8 text-xs font-bold transition-all",
+                                                            activeBrand === brand && "bg-primary/10 text-primary hover:bg-primary/20"
+                                                        )}
+                                                    >
+                                                        {brand}
+                                                    </Button>
+                                                )
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="max-w-4xl">
+                                    {platform.steps.map((step, index) => (
+                                        <InstructionStepRow
+                                            key={index}
+                                            number={index + 1}
+                                            {...step}
+                                        />
+                                    ))}
+                                </div>
+                            </TabsContent>
+                        ))}
+                    </Tabs>
+                </div>
+            </SeamlessSection>
+
+            {/* Bottom Actions - Aligned Right on Desktop */}
+            <div className="flex flex-col sm:flex-row items-center sm:justify-end pt-10 border-t border-border/40 gap-4">
+                <Button
+                    variant="ghost"
+                    size="default"
+                    className="w-full sm:w-auto h-10 px-6 rounded-full font-bold text-muted-foreground hover:text-foreground transition-all text-xs"
+                    onClick={() => navigate("/dashboard")}
+                >
+                    Setup Later
+                </Button>
+                <Button
+                    size="lg"
+                    className="w-full sm:w-auto h-10 px-8 rounded-full font-bold shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 gap-2 text-xs"
+                    onClick={() => {
+                        toast({
+                            title: "✓ Configuration Complete",
+                            description: `You can now monitor ${profile.display_name}'s safety from the dashboard.`,
+                        });
+                        navigate("/dashboard");
+                    }}
+                >
+                    <Check className="h-5 w-5" />
+                    I've Finished Setup
+                </Button>
             </div>
         </div>
     );

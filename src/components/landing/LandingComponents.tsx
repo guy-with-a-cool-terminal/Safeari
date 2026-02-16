@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button as UiButton } from "@/components/ui/button";
 import { LucideIcon } from "lucide-react";
 
 export const useFadeIn = (threshold = 0.2) => {
@@ -26,14 +26,16 @@ interface InfoCardProps {
   glowColor?: string;
 }
 
-export const InfoCard = ({ icon: Icon, title, description, glowColor = "from-primary/5" }: InfoCardProps) => (
-  <div className="group relative rounded-xl bg-card border border-border/80 shadow-sm hover:shadow-lg p-8 hover-lift">
-    <div className="space-y-4">
-      <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300 text-primary">
-        <Icon className="h-7 w-7" />
+export const InfoCard = ({ icon: Icon, title, description }: InfoCardProps) => (
+  <div className="group relative transition-all duration-300">
+    <div className="p-6 sm:p-8 bg-transparent sm:bg-card border-0 sm:border sm:rounded-xl sm:shadow-none sm:hover:shadow-lg sm:hover-lift transition-all">
+      <div className="space-y-4">
+        <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300 text-primary">
+          <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
+        </div>
+        <h3 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">{title}</h3>
+        <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">{description}</p>
       </div>
-      <h3 className="text-xl font-semibold tracking-tight text-foreground">{title}</h3>
-      <p className="text-base leading-relaxed text-muted-foreground">{description}</p>
     </div>
   </div>
 );
@@ -46,17 +48,17 @@ interface SetupStepProps {
 }
 
 export const SetupStep = ({ number, title, description, Icon }: SetupStepProps) => (
-  <div className="group relative p-6 transition-all duration-300">
-    <div className="flex flex-col gap-5">
-      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary group-hover:border-primary transition-all duration-300">
-        <span className="font-semibold text-primary group-hover:text-primary-foreground text-lg transition-colors duration-300">{number}</span>
+  <div className="group relative p-4 sm:p-6 transition-all duration-300 border-0 sm:border-0">
+    <div className="flex flex-col gap-4 sm:gap-5">
+      <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary group-hover:border-primary transition-all duration-300">
+        <span className="font-semibold text-primary group-hover:text-primary-foreground text-base sm:text-lg transition-colors duration-300">{number}</span>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5 sm:space-y-2">
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4 text-primary/70" />
-          <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+          <h3 className="text-base sm:text-lg font-semibold tracking-tight">{title}</h3>
         </div>
-        <p className="text-sm md:text-base leading-relaxed text-muted-foreground">{description}</p>
+        <p className="text-xs sm:text-sm md:text-base leading-relaxed text-muted-foreground">{description}</p>
       </div>
     </div>
   </div>
@@ -147,7 +149,7 @@ export const ContactCard = ({
   glowColor = "from-primary/5",
   isExternal = false
 }: ContactCardProps) => {
-  const Button = ({ children, className }: { children: React.ReactNode; className: string }) => (
+  const LinkButton = ({ children, className }: { children: React.ReactNode; className: string }) => (
     <a
       href={buttonHref}
       target={isExternal ? "_blank" : undefined}
@@ -159,19 +161,19 @@ export const ContactCard = ({
   );
 
   return (
-    <div className="group relative rounded-xl bg-card border border-border shadow-sm hover:shadow-md p-8 text-center hover-lift">
-      <div className="space-y-5">
-        <div className="mx-auto h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300 text-primary">
-          <Icon className="h-7 w-7" />
+    <div className="group relative p-4 sm:p-8 text-center border-0 sm:border sm:rounded-xl sm:bg-card sm:shadow-sm sm:hover:shadow-md sm:hover-lift transition-all bg-transparent">
+      <div className="space-y-4 sm:space-y-5">
+        <div className="mx-auto h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300 text-primary">
+          <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
         </div>
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold tracking-tight text-foreground">{title}</h3>
-          <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+        <div className="space-y-1.5 sm:space-y-2">
+          <h3 className="text-base sm:text-lg font-semibold tracking-tight text-foreground">{title}</h3>
+          <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">{description}</p>
         </div>
-        <Button className={buttonVariant === "default" ? `bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm ${buttonClassName}` : `border border-border bg-transparent hover:bg-muted text-foreground ${buttonClassName}`}>
+        <LinkButton className={buttonVariant === "default" ? `bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm ${buttonClassName}` : `border border-border bg-background sm:bg-transparent hover:bg-muted text-foreground ${buttonClassName}`}>
           {buttonText}
           <Icon className="ml-2 h-4 w-4" />
-        </Button>
+        </LinkButton>
       </div>
     </div>
   );

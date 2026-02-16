@@ -58,7 +58,7 @@ export const WhySection = () => {
           subtitle="Not just another app kids can delete. Safeari protects your family at the source, keeping them safe on every app and device automatically."
         />
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+        <div className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
           {WHY_CARDS.map((card, index) => (
             <InfoCard key={index} {...card} />
           ))}
@@ -262,28 +262,77 @@ export const ComparisonSection = () => {
           subtitle="Not all parental controls are created equal. Here's why Safeari's internet-level protection works better than browser extensions or apps."
         />
 
-        <div className="overflow-x-auto rounded-2xl border border-border shadow-lg bg-card scrollbar-hide">
-          <table className="w-full border-collapse min-w-[600px] md:min-w-0">
+        {/* Mobile: Stacked View */}
+        <div className="md:hidden space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <div className="relative rounded-2xl border border-primary/20 shadow-lg bg-primary/5 p-6 overflow-hidden">
+              <div className="absolute top-0 right-0 p-3 opacity-10">
+                <img src={SafeariIconLogo} alt="" className="h-12 w-12" />
+              </div>
+              <h4 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                <img src={SafeariIconLogo} alt="" className="h-6 w-6" />
+                Safeari
+              </h4>
+              <ul className="space-y-4">
+                {COMPARISON_ROWS.map((row, index) => (
+                  <li key={index} className="flex items-center justify-between py-2 border-b border-primary/10 last:border-0">
+                    <span className="text-sm font-medium text-foreground">{row.feature}</span>
+                    <ComparisonCell value={row.safeari} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h4 className="text-sm font-bold text-muted-foreground mb-4 text-center">Browser<br />Extensions</h4>
+                <ul className="space-y-3">
+                  {COMPARISON_ROWS.map((row, index) => (
+                    <li key={index} className="flex flex-col items-center gap-1 text-center py-2 border-b border-border/50 last:border-0 leading-tight">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">{row.feature}</span>
+                      <ComparisonCell value={row.browserExt} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h4 className="text-sm font-bold text-muted-foreground mb-4 text-center">Device<br />Apps</h4>
+                <ul className="space-y-3">
+                  {COMPARISON_ROWS.map((row, index) => (
+                    <li key={index} className="flex flex-col items-center gap-1 text-center py-2 border-b border-border/50 last:border-0 leading-tight">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">{row.feature}</span>
+                      <ComparisonCell value={row.deviceApps} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: Table View */}
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-border shadow-lg bg-card scrollbar-hide">
+          <table className="w-full border-collapse">
             <thead>
               <tr className="bg-secondary">
-                <th className="text-left p-4 md:p-6 font-semibold text-sm md:text-base sticky left-0 bg-secondary md:relative z-10 w-1/3">Feature</th>
-                <th className="text-center p-4 md:p-6 font-semibold text-sm md:text-base border-x border-border bg-white shadow-sm">
+                <th className="text-left p-6 font-semibold sticky left-0 bg-secondary z-10 w-1/3">Feature</th>
+                <th className="text-center p-6 font-semibold border-x border-border bg-white shadow-sm">
                   <div className="flex flex-col items-center gap-2">
                     <img src={SafeariIconLogo} alt="" className="h-8 w-8" />
                     <span className="text-primary font-semibold leading-tight">Safeari<br /><span className="text-[10px] font-medium opacity-70">Best for Trust</span></span>
                   </div>
                 </th>
-                <th className="text-center p-4 md:p-6 font-semibold text-xs md:text-sm text-muted-foreground">Browser<br />Extensions</th>
-                <th className="text-center p-4 md:p-6 font-semibold text-xs md:text-sm text-muted-foreground">Device<br />Apps</th>
+                <th className="text-center p-6 font-semibold text-sm text-muted-foreground">Browser<br />Extensions</th>
+                <th className="text-center p-6 font-semibold text-sm text-muted-foreground">Device<br />Apps</th>
               </tr>
             </thead>
-            <tbody className="text-sm md:text-base">
+            <tbody className="text-base">
               {COMPARISON_ROWS.map((row, index) => (
                 <tr key={index} className={`border-t border-border/10 ${index % 2 === 1 ? 'bg-muted/10' : ''} hover:bg-muted/20 transition-colors`}>
-                  <td className="p-4 md:p-6 font-medium sticky left-0 bg-inherit md:relative z-10">{row.feature}</td>
-                  <td className="text-center p-4 md:p-6 border-x border-primary/10 bg-primary/5"><ComparisonCell value={row.safeari} /></td>
-                  <td className="text-center p-4 md:p-6"><ComparisonCell value={row.browserExt} /></td>
-                  <td className="text-center p-4 md:p-6"><ComparisonCell value={row.deviceApps} /></td>
+                  <td className="p-6 font-medium sticky left-0 bg-inherit z-10">{row.feature}</td>
+                  <td className="text-center p-6 border-x border-primary/10 bg-primary/5"><ComparisonCell value={row.safeari} /></td>
+                  <td className="text-center p-6"><ComparisonCell value={row.browserExt} /></td>
+                  <td className="text-center p-6"><ComparisonCell value={row.deviceApps} /></td>
                 </tr>
               ))}
             </tbody>
@@ -443,9 +492,11 @@ export const FinalCTASection = ({ isAuthenticated }) => {
           <div className="space-y-4">
             {FINAL_CTA_BENEFITS.map((benefit, index) => (
               <div key={index} className="flex items-start gap-3 text-left">
-                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <p>
-                  <strong>{benefit.text}</strong>{benefit.suffix}
+                <div className="flex-shrink-0 mt-1">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+                <p className="leading-tight">
+                  <strong className="text-foreground">{benefit.text}</strong>{benefit.suffix}
                 </p>
               </div>
             ))}

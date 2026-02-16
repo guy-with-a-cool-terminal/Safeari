@@ -325,46 +325,48 @@
     @apply w-6 h-6 mb-1;
   }
 
-  /* Hamburger animation */
+  /* Premium Hamburger Design */
   .hamburger {
     position: relative;
-    width: 24px;
-    height: 18px;
-    cursor: pointer;
+    width: 20px;
+    height: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
   }
 
   .hamburger span {
-    position: absolute;
-    height: 2px;
-    width: 100%;
-    background: hsl(var(--foreground));
-    left: 0;
-    transition: var(--transition-smooth);
+    height: 1.5px;
+    background: currentColor;
+    border-radius: 4px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: right;
   }
 
-  .hamburger span:nth-child(1) {
-    top: 0;
-  }
-
-  .hamburger span:nth-child(2) {
-    top: 8px;
-  }
-
-  .hamburger span:nth-child(3) {
-    top: 16px;
-  }
+  /* Natural staggered widths */
+  .hamburger span:nth-child(1) { width: 100%; }
+  .hamburger span:nth-child(2) { width: 70%; }
+  .hamburger span:nth-child(3) { width: 85%; }
 
   .hamburger.active span:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
+    transform: rotate(-45deg) translate(-2px, -1px);
+    width: 18.5px;
   }
 
   .hamburger.active span:nth-child(2) {
     opacity: 0;
+    transform: translateX(10px);
   }
 
   .hamburger.active span:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+    transform: rotate(45deg) translate(-2px, 1px);
+    width: 18.5px;
   }
+
+  /* Hover effect for premium feel */
+  .group:hover .hamburger span:nth-child(2) { width: 100%; }
+  .group:hover .hamburger span:nth-child(3) { width: 100%; }
 
   /* Card elevation variants */
   .card-elevated {

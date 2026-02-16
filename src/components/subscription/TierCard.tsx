@@ -43,7 +43,7 @@ export const TierCard = ({
         ? 'border-primary ring-1 ring-primary/20 bg-primary/5 shadow-md'
         : isRecommended
           ? 'border-primary shadow-xl scale-[1.02] bg-card'
-          : 'border-border bg-card shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-1'
+          : 'border-0 sm:border sm:bg-card bg-transparent shadow-none sm:shadow-sm sm:hover:shadow-md sm:hover:border-primary/30 sm:hover:-translate-y-1'
         }`}
     >
       {isRecommended && !isCurrent && (

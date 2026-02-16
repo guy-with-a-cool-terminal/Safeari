@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, ArrowRight, Zap, Shield, Check } from "lucide-react";
+import { ArrowRight, Zap, Shield, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SafeariLogo from "@/assets/favicon.svg";
 import SafeariIconLogo from "@/assets/favicon.svg";
@@ -22,6 +22,20 @@ import {
   SocialProofSection,
   DemoSection
 } from "./LandingSections";
+
+const PremiumHamburger = ({ isOpen, onClick }: { isOpen: boolean; onClick: () => void }) => (
+  <button
+    className="md:hidden p-3 rounded-xl hover:bg-primary/10 transition-all duration-300 group z-50 relative"
+    onClick={onClick}
+    aria-label={isOpen ? "Close menu" : "Open menu"}
+  >
+    <div className={`hamburger ${isOpen ? "active" : ""} text-foreground group-hover:text-primary transition-colors`}>
+      <span />
+      <span />
+      <span />
+    </div>
+  </button>
+);
 
 interface NavLinksProps {
   activeSection: string;
@@ -171,53 +185,63 @@ const Landing = () => {
             <AuthButtons isAuthenticated={isAuthenticated} />
           </nav>
 
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+          <PremiumHamburger
+            isOpen={menuOpen}
+            onClick={() => setMenuOpen(!menuOpen)}
+          />
         </div>
       </header>
 
-      {/* Simplified Mobile Menu - Side Drawer */}
-      {menuOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity"
-            onClick={() => setMenuOpen(false)}
-          />
-          <div className="fixed top-0 right-0 bottom-0 w-[280px] z-50 bg-background border-l border-border shadow-2xl md:hidden overflow-y-auto">
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-border/60">
-                <div className="flex items-center gap-2">
-                  <img src={SafeariLogo} alt="Safeari" className="h-7 w-7" />
-                  <span className="text-lg font-bold text-primary">Safeari</span>
-                </div>
-                <button
-                  className="p-2 rounded-lg hover:bg-primary/10 transition-colors"
+      {/* Premium Mobile Menu Drawer */}
+      <div
+        className={`fixed inset-0 z-40 md:hidden transition-all duration-500 ease-in-out ${menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+      >
+        <div
+          className="absolute inset-0 bg-background/20 backdrop-blur-md"
+          onClick={() => setMenuOpen(false)}
+        />
+        <div
+          className={`absolute top-0 right-0 bottom-0 w-[85%] max-w-sm bg-background/90 backdrop-blur-2xl border-l border-border/40 shadow-2xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${menuOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+        >
+          <div className="flex flex-col h-full p-6 pt-24">
+            {/* Navigation Links with Staggered Animation */}
+            <nav className="flex-1 space-y-1">
+              {NAV_ITEMS.map(({ id, label }, index) => (
+                <a
+                  key={id}
+                  href={`#${id}`}
                   onClick={() => setMenuOpen(false)}
-                  aria-label="Close menu"
+                  className={`block text-2xl font-bold py-4 transition-all duration-500 hover:text-primary ${activeSection === id ? "text-primary" : "text-foreground/70"
+                    }`}
+                  style={{
+                    transitionDelay: menuOpen ? `${index * 50 + 100}ms` : "0ms",
+                    opacity: menuOpen ? 1 : 0,
+                    transform: menuOpen ? "translateX(0)" : "translateX(20px)"
+                  }}
                 >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+                  <div className="flex items-center justify-between">
+                    <span>{label}</span>
+                    <ArrowRight className={`h-5 w-5 opacity-0 -translate-x-4 transition-all group-hover:opacity-100 group-hover:translate-x-0 ${activeSection === id ? "opacity-100 translate-x-0" : ""}`} />
+                  </div>
+                </a>
+              ))}
+            </nav>
 
-              {/* Navigation Links */}
-              <nav className="flex-1 p-4 space-y-1">
-                <NavLinks activeSection={activeSection} isMobile onItemClick={() => setMenuOpen(false)} />
-              </nav>
-
-              {/* Auth Buttons */}
-              <div className="p-4">
-                <AuthButtons isAuthenticated={isAuthenticated} isMobile onItemClick={() => setMenuOpen(false)} />
-              </div>
+            {/* Auth Buttons */}
+            <div
+              className="pt-8 border-t border-border/10 transition-all duration-500 delay-300"
+              style={{
+                opacity: menuOpen ? 1 : 0,
+                transform: menuOpen ? "translateY(0)" : "translateY(20px)"
+              }}
+            >
+              <AuthButtons isAuthenticated={isAuthenticated} isMobile onItemClick={() => setMenuOpen(false)} />
             </div>
           </div>
-        </>
-      )}
+        </div>
+      </div>
 
       {/* Hero Section - Refined with Professional Mobile Background Optimization */}
       <main>
@@ -253,23 +277,23 @@ const Landing = () => {
 
                 {/* Key Benefits - Scannable & Aggressive */}
                 <div className="flex flex-col gap-3 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                  <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="flex items-start gap-3">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="h-4 w-4 text-primary font-bold" />
                     </div>
-                    <span><strong className="text-foreground">Impossible to bypass</strong> — blocks VPNs kids use to cheat</span>
+                    <span className="leading-snug"><strong className="text-foreground">Impossible to bypass</strong> — blocks VPNs kids use to cheat</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="flex items-start gap-3">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="h-4 w-4 text-primary font-bold" />
                     </div>
-                    <span><strong className="text-foreground">Universal protection</strong> — phones, tablets, smart TVs & consoles</span>
+                    <span className="leading-snug"><strong className="text-foreground">Universal protection</strong> — phones, tablets, smart TVs & consoles</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="flex items-start gap-3">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="h-4 w-4 text-primary font-bold" />
                     </div>
-                    <span><strong className="text-foreground">Setup once, protected 24/7</strong> — in less than 5 minutes</span>
+                    <span className="leading-snug"><strong className="text-foreground">Setup once, protected 24/7</strong> — in less than 5 minutes</span>
                   </div>
                 </div>
 

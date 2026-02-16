@@ -175,7 +175,7 @@ const Landing = () => {
       <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-lg shadow-sm" role="banner">
         <div className="container flex h-16 md:h-20 items-center justify-between px-4 md:px-6">
           <a href="#top" className="flex items-center gap-2 md:gap-3 group transition-transform hover:scale-105 duration-300">
-            <img src={SafeariLogo} alt="Safeari" className="h-14 w-14 md:h-16 md:w-16" />
+            <img src={SafeariLogo} alt="Safeari" className="h-[52px] w-[52px] md:h-[60px] md:w-[60px]" />
             <span className="text-xl md:text-2xl font-bold text-primary">Safeari</span>
           </a>
 

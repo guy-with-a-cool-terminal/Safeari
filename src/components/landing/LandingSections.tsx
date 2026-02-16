@@ -26,7 +26,7 @@ import {
 import { SetupStep, FeatureCard, InfoCard, ContactCard, useFadeIn } from "./LandingComponents";
 
 interface SectionHeaderProps {
-  badge?: { icon: React.ComponentType<any>; text: string };
+  badge?: { icon?: React.ComponentType<any>; text: string };
   title: string;
   subtitle?: string;
 }
@@ -35,7 +35,7 @@ const SectionHeader = ({ badge, title, subtitle }: SectionHeaderProps) => (
   <div className="text-center space-y-4 mb-16">
     {badge && (
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
-        <badge.icon className="h-4 w-4 text-primary" />
+        {badge.icon && <badge.icon className="h-4 w-4 text-primary" />}
         <span className="text-sm font-medium text-primary">{badge.text}</span>
       </div>
     )}
@@ -80,7 +80,7 @@ export const SocialProofSection = () => {
             <Star className="h-5 w-5 fill-primary" />
             <Star className="h-5 w-5 fill-primary" />
           </div>
-          <span className="font-semibold text-lg text-foreground">2,000+ Families Protected</span>
+          <span className="font-semibold text-lg text-foreground">Safe, Reliable & Parent-Approved</span>
         </div>
       </div>
     </section>
@@ -204,38 +204,41 @@ export const PricingSection = ({ tiers, tiersLoading, handleTierSelect }) => {
           </div>
         )}
 
-        <div className="pt-16 border-t border-border/10">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground/30 mb-12">Supported Secure Payments</p>
-          <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24">
-            {/* Floating M-PESA Full-Name Icon */}
-            <div className="group flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2">
-              <div className="flex items-center justify-center h-12 px-2 transition-transform group-hover:scale-110">
-                <div className="text-[#00A651] font-black text-3xl tracking-tighter filter drop-shadow-sm">M-PESA</div>
-              </div>
-              <span className="text-[10px] font-black tracking-widest text-[#00A651] uppercase opacity-60 group-hover:opacity-100 transition-opacity">STK Push</span>
-            </div>
-
-            {/* Floating AIRTEL Full-Name Icon */}
-            <div className="group flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2">
-              <div className="flex items-center justify-center h-12 px-2 transition-transform group-hover:scale-110">
-                <div className="text-[#FF0000] font-black text-3xl tracking-tighter filter drop-shadow-sm">AIRTEL</div>
-              </div>
-              <span className="text-[10px] font-black tracking-widest text-[#FF0000] uppercase opacity-60 group-hover:opacity-100 transition-opacity">Airtel Money</span>
-            </div>
-
-            {/* Icon-Only Card Support */}
-            <div className="group flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2">
-              <div className="flex items-center justify-center h-12 px-2 transition-transform group-hover:scale-110">
-                <CreditCard className="h-12 w-12 text-slate-800 dark:text-slate-200 opacity-80 group-hover:opacity-100 transition-opacity filter drop-shadow-sm" />
-              </div>
-              <span className="text-[10px] font-black tracking-widest text-muted-foreground/40 uppercase">Visa/Master</span>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-base text-muted-foreground mt-12 font-semibold tracking-tight text-primary/60">
+        <p className="text-base text-muted-foreground mt-8 font-semibold tracking-tight text-primary/60">
           That's less than your child's daily lunch money
         </p>
+
+        <div className="pt-16 border-t border-border/10 overflow-hidden relative">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground/30 mb-12">Supported Secure Payments</p>
+          <div className="flex animate-marquee gap-12 md:gap-24 py-4 items-center">
+            {/* Payment Logos Group - Duplicated for seamless loop */}
+            {[1, 2, 3, 4].map((i) => (
+              <React.Fragment key={i}>
+                {/* M-PESA */}
+                <div className="group flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2 flex-shrink-0">
+                  <div className="flex items-center justify-center h-12 px-2 transition-transform group-hover:scale-110">
+                    <div className="text-[#00A651] font-black text-3xl tracking-tighter filter drop-shadow-sm">M-PESA</div>
+                  </div>
+                </div>
+
+                {/* AIRTEL */}
+                <div className="group flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2 flex-shrink-0">
+                  <div className="flex items-center justify-center h-12 px-2 transition-transform group-hover:scale-110">
+                    <div className="text-[#FF0000] font-black text-3xl tracking-tighter filter drop-shadow-sm">AIRTEL</div>
+                  </div>
+                </div>
+
+                {/* Card Support */}
+                <div className="group flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2 flex-shrink-0">
+                  <div className="hidden sm:flex items-center justify-center h-12 px-2 transition-transform group-hover:scale-110">
+                    <CreditCard className="h-12 w-12 text-slate-800 dark:text-slate-200 opacity-80 group-hover:opacity-100 transition-opacity filter drop-shadow-sm" />
+                  </div>
+                  <span className="text-sm sm:text-base font-bold tracking-wider text-muted-foreground/60 sm:text-muted-foreground/50 uppercase whitespace-nowrap">Visa / Mastercard</span>
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -425,7 +428,7 @@ export const ContactSection = () => {
     <section id="contact" className="py-16 md:py-24 bg-secondary px-4 md:px-6">
       <div className="container max-w-5xl mx-auto">
         <SectionHeader
-          badge={{ icon: MessageCircle, text: "We're Here to Help" }}
+          badge={{ text: "We're Here to Help" }}
           title="Get in Touch"
           subtitle="Questions about setup? Need help choosing a plan? Our team is ready to assist you."
         />

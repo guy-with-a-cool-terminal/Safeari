@@ -345,9 +345,17 @@
   }
 
   /* Natural staggered widths */
-  .hamburger span:nth-child(1) { width: 100%; }
-  .hamburger span:nth-child(2) { width: 70%; }
-  .hamburger span:nth-child(3) { width: 85%; }
+  .hamburger span:nth-child(1) {
+    width: 100%;
+  }
+
+  .hamburger span:nth-child(2) {
+    width: 70%;
+  }
+
+  .hamburger span:nth-child(3) {
+    width: 85%;
+  }
 
   .hamburger.active span:nth-child(1) {
     transform: rotate(-45deg) translate(-2px, -1px);
@@ -365,8 +373,13 @@
   }
 
   /* Hover effect for premium feel */
-  .group:hover .hamburger span:nth-child(2) { width: 100%; }
-  .group:hover .hamburger span:nth-child(3) { width: 100%; }
+  .group:hover .hamburger span:nth-child(2) {
+    width: 100%;
+  }
+
+  .group:hover .hamburger span:nth-child(3) {
+    width: 100%;
+  }
 
   /* Card elevation variants */
   .card-elevated {
@@ -379,5 +392,26 @@
     box-shadow:
       0 8px 25px rgba(0, 0, 0, 0.08),
       0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Marquee Animation */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee var(--marquee-duration, 30s) linear infinite;
+  }
+
+  .animate-marquee:hover {
+    animation-play-state: paused;
   }
 }

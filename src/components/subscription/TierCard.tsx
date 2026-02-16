@@ -39,16 +39,21 @@ export const TierCard = ({
 
   return (
     <Card
-      className={`relative group transition-all duration-300 h-full flex flex-col ${isCurrent
+      className={`relative group transition-all duration-300 h-full flex flex-col overflow-hidden ${isCurrent
         ? 'border-primary ring-1 ring-primary/20 bg-primary/5 shadow-md'
         : isRecommended
-          ? 'border-primary shadow-[0_0_20px_rgba(0,107,255,0.15)] scale-[1.02] bg-card z-10 ring-1 ring-primary/20'
-          : 'border-0 sm:border sm:bg-card bg-transparent shadow-none sm:shadow-sm sm:hover:shadow-md sm:hover:border-primary/30 sm:hover:-translate-y-1'
+          ? 'border-primary shadow-[0_4px_20px_rgba(0,107,255,0.08)] scale-[1.02] bg-card z-10 ring-1 ring-primary/10'
+          : 'border border-border/50 bg-card shadow-sm hover:shadow-md hover:border-primary/20 transition-all'
         }`}
     >
+      {/* Hostinger-style Top Bar for Recommended Section */}
       {isRecommended && !isCurrent && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-          <Badge className="text-[10px] px-3 py-1 shadow-md bg-primary text-primary-foreground font-bold border-none uppercase tracking-wider">
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-primary" />
+      )}
+
+      {isRecommended && !isCurrent && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+          <Badge className="text-[10px] px-3 py-0.5 rounded-b-lg shadow-sm bg-primary text-primary-foreground font-bold border-none uppercase tracking-wider">
             Most Popular
           </Badge>
         </div>
@@ -80,7 +85,7 @@ export const TierCard = ({
         {isRecommended && !isCurrent && (
           <div className="text-center mb-3">
             <span className="text-[10px] sm:text-xs font-bold text-primary bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
-              2,000+ families already protected
+              The trusted choice for proactive parents
             </span>
           </div>
         )}

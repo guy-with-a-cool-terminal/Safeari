@@ -190,31 +190,54 @@ const SetupPage = () => {
 
     const androidBrands: Record<string, string[]> = {
         samsung: [
-            "Open Settings and tap 'Connections'",
-            "Tap 'More connection settings' at the bottom",
-            "Select 'Private DNS'",
-            "Choose 'Private DNS provider hostname'"
+            "Open the Settings app (look for the gear icon)",
+            "Scroll down and tap 'Connections'",
+            "Scroll to the bottom and tap 'More connection settings'",
+            "Tap 'Private DNS'",
+            "Select 'Private DNS provider hostname' (NOT 'Automatic' or 'Off')"
         ],
         pixel: [
-            "Open Settings and tap 'Network & internet'",
-            "Tap 'Private DNS' (you may need to scroll down)",
+            "Open the Settings app",
+            "Tap 'Network & internet'",
+            "Scroll down and tap 'Private DNS'",
             "Select 'Private DNS provider hostname'"
         ],
         xiaomi: [
-            "Open Settings and tap 'Connection & sharing'",
-            "Select 'Private DNS'",
-            "Choose 'Private DNS provider hostname'"
+            "Open the Settings app",
+            "Tap 'Connection & sharing' (or 'More connectivity options' on some versions)",
+            "Tap 'Private DNS'",
+            "Select 'Private DNS provider hostname'"
         ],
         oneplus: [
-            "Open Settings and tap 'Connection & Sharing'",
-            "Select 'Private DNS'",
-            "Choose 'Designated private DNS'"
+            "Open the Settings app",
+            "Tap 'Connection & Sharing'",
+            "Tap 'Private DNS'",
+            "Select 'Designated private DNS'"
+        ],
+        tecno: [
+            "Open the Settings app",
+            "Tap 'Network & internet' (or 'Connections')",
+            "Look for 'Private DNS' - it may be under 'Advanced' or visible directly",
+            "Select 'Private DNS provider hostname'"
+        ],
+        infinix: [
+            "Open the Settings app",
+            "Tap 'More Connections' (or 'Hotspot & Connections')",
+            "Tap 'Private DNS'",
+            "Select 'Private DNS provider hostname'"
+        ],
+        oppo: [
+            "Open the Settings app",
+            "Tap 'Connection & sharing' (or 'Wi-Fi & Network')",
+            "Tap 'Private DNS'",
+            "Select 'Designated private DNS' (or 'Private DNS provider hostname')"
         ],
         other: [
-            "Open Settings on your child's phone",
-            "Tap the search bar at the top and type 'Private DNS'",
-            "Select 'Private DNS' from the results",
-            "Choose 'Private DNS provider hostname'"
+            "Open the Settings app",
+            "Tap 'Network & internet' or 'Connections'",
+            "Tap 'Advanced' or 'More connection settings'",
+            "Look for 'Private DNS' and tap it",
+            "Select 'Private DNS provider hostname' (the exact wording may vary)"
         ]
     };
 
@@ -230,33 +253,37 @@ const SetupPage = () => {
                 ? [
                     ...androidBrands[activeBrand as keyof typeof androidBrands].map((stepText) => ({
                         title: stepText,
-                        description: "Follow this on your phone's screen."
+                        description: `Follow this on ${profile?.display_name}'s phone.`
                     })),
                     {
                         title: "Enter Protection Address",
-                        description: "Type in your unique address into the input field:",
+                        description: `Type in ${profile?.display_name}'s unique protection address into the input field:`,
                         copyText: dotHostname,
                         copyLabel: "Protection Address"
                     },
                     {
                         title: "Save",
-                        description: "Tap 'Save'. Protection is now active on all Wi-Fi and mobile networks."
+                        description: `Tap 'Save'. ${profile?.display_name} is now protected on all Wi-Fi and mobile networks.`
                     }
                 ]
                 : [
                     {
                         title: "Open DNS Settings",
-                        description: "Open Settings on your child's phone and search for 'Private DNS' in the top search bar.",
+                        description: `Open Settings on ${profile?.display_name}'s phone, then tap 'Network & internet' or 'Connections'.`,
+                    },
+                    {
+                        title: "Find Private DNS",
+                        description: "Tap 'Advanced' or 'More connection settings', then look for 'Private DNS' and tap it."
                     },
                     {
                         title: "Enter Protection Address",
-                        description: "Select 'Private DNS provider hostname' and type in your unique address:",
+                        description: `Select 'Private DNS provider hostname' and type in ${profile?.display_name}'s unique address:`,
                         copyText: dotHostname,
                         copyLabel: "Protection Address"
                     },
                     {
                         title: "Save",
-                        description: "Tap 'Save'. Protection is now active on all Wi-Fi and mobile networks."
+                        description: `Tap 'Save'. ${profile?.display_name} is now protected on all Wi-Fi and mobile networks.`
                     }
                 ]
         },
@@ -313,12 +340,14 @@ const SetupPage = () => {
                     copyLabel: "Setup Command"
                 },
                 {
-                    title: "Follow Prompts",
-                    description: "The automated installer will guide you through a few simple choices. Just follow along."
+                    title: "Enter Configuration ID",
+                    description: "When prompted, enter this Configuration ID:",
+                    copyText: dnsDetails?.id || "",
+                    copyLabel: "Configuration ID"
                 },
                 {
-                    title: "Secure",
-                    description: "Your Mac is now fully protected against harmful content."
+                    title: "Complete Setup",
+                    description: "Follow the remaining prompts to finish installation. Your Mac is now fully protected."
                 }
             ]
         },
@@ -333,12 +362,14 @@ const SetupPage = () => {
                     copyLabel: "Setup Command"
                 },
                 {
-                    title: "Complete Setup",
-                    description: "Follow the guided process in your terminal to finish the installation."
+                    title: "Enter Configuration ID",
+                    description: "When prompted, enter this Configuration ID:",
+                    copyText: dnsDetails?.id || "",
+                    copyLabel: "Configuration ID"
                 },
                 {
-                    title: "Guarded",
-                    description: "Safeari protection is now active on your Linux system."
+                    title: "Complete Setup",
+                    description: "Follow the remaining prompts to finish installation. Safeari protection is now active."
                 }
             ]
         },
@@ -364,7 +395,7 @@ const SetupPage = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="text-muted-foreground font-medium">You're just one step away from providing your child with a safer internet experience...</p>
+                <p className="text-muted-foreground font-medium">You're just one step away from a safer internet experience...</p>
             </div>
         );
     }
@@ -500,6 +531,31 @@ const SetupPage = () => {
                 </div>
             </div>
 
+            {/* Reassurance Banner - Mobile First */}
+            <div className="bg-blue-500/5 border border-blue-500/10 rounded-lg p-4 sm:p-5 mb-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                    <div className="h-10 w-10 bg-blue-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Info className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                        <p className="text-sm font-bold">This is a one-time setup</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                            Takes 2-3 minutes • Works on all networks • Protection lasts forever
+                        </p>
+                    </div>
+                    <Button
+                        asChild
+                        size="sm"
+                        className="w-full sm:w-auto h-9 px-4 rounded-full font-bold bg-[#25D366] hover:bg-[#20BA5A] text-white border-none shadow-sm"
+                    >
+                        <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                            <SiWhatsapp className="h-3.5 w-3.5 mr-2" />
+                            Get Help Now
+                        </a>
+                    </Button>
+                </div>
+            </div>
+
             {/* Setup Instructions Section */}
             <SeamlessSection
                 title="Device Selection"
@@ -546,8 +602,8 @@ const SetupPage = () => {
                                 {platform.hasBrands && (
                                     <div className="space-y-6 pb-4">
                                         <div className="flex flex-col gap-1">
-                                            <h4 className="text-sm font-bold tracking-tight">Step 1: Check your phone brand (Optional)</h4>
-                                            <p className="text-xs text-muted-foreground">This helps us show you exactly which buttons to press.</p>
+                                            <h4 className="text-sm font-bold tracking-tight">Step 1: What brand is your child's phone?</h4>
+                                            <p className="text-xs text-muted-foreground">Different brands organize settings differently. Select the brand to see the exact path. Look for the brand name on the back of the phone.</p>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             <Button
@@ -559,7 +615,7 @@ const SetupPage = () => {
                                                     activeBrand === null && "bg-primary/10 text-primary hover:bg-primary/20"
                                                 )}
                                             >
-                                                General Android
+                                                I Don't Know the Brand
                                             </Button>
                                             {Object.keys(androidBrands).map((brand) => (
                                                 brand !== "other" && (
@@ -589,6 +645,33 @@ const SetupPage = () => {
                                         />
                                     ))}
                                 </div>
+
+                                {/* Can't Find It? Fallback - Only for Android */}
+                                {key === "android" && (
+                                    <div className="mt-8 p-4 bg-amber-500/5 border border-amber-500/10 rounded-lg">
+                                        <div className="flex items-start gap-3">
+                                            <HelpCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                                            <div className="flex-1 space-y-3">
+                                                <div>
+                                                    <p className="text-sm font-bold mb-1">Can't find these exact options?</p>
+                                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                                        Phone settings vary by Android version and manufacturer. If the steps above don't match your phone exactly, we're here to help you find it.
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    asChild
+                                                    size="sm"
+                                                    className="h-9 px-4 rounded-full font-bold bg-[#25D366] hover:bg-[#20BA5A] text-white border-none shadow-sm"
+                                                >
+                                                    <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                                                        <SiWhatsapp className="h-3.5 w-3.5 mr-2" />
+                                                        Get Personal Help
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </TabsContent>
                         ))}
                     </Tabs>

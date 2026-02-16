@@ -192,5 +192,5 @@ export const FINAL_CTA_BENEFITS = [
   { text: "Free forever plan", bold: true, suffix: " with complete protection" },
   { text: "No credit card required", bold: true, suffix: " to start" },
   { text: "Setup in 5 minutes", bold: true, suffix: " with step-by-step guides" },
-  { text: "Support available", bold: true, suffix: " via WhatsApp, phone, and email" }
+  { text: "Support available", bold: true, suffix: " via WhatsApp and email" }
 ];

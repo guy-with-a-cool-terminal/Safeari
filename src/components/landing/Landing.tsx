@@ -276,24 +276,30 @@ const Landing = () => {
                 </p>
 
                 {/* Key Benefits - Scannable & Aggressive */}
-                <div className="flex flex-col gap-3 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="h-4 w-4 text-primary font-bold" />
+                <div className="flex flex-col gap-4 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+                  <div className="flex items-start gap-3 text-left">
+                    <div className="flex-shrink-0 mt-1">
+                      <Check className="h-5 w-5 text-green-600" />
                     </div>
-                    <span className="leading-snug"><strong className="text-foreground">Impossible to bypass</strong> — blocks VPNs kids use to cheat</span>
+                    <p className="leading-tight">
+                      <strong className="text-foreground">Impossible to bypass</strong> — blocks VPNs kids use to cheat
+                    </p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="h-4 w-4 text-primary font-bold" />
+                  <div className="flex items-start gap-3 text-left">
+                    <div className="flex-shrink-0 mt-1">
+                      <Check className="h-5 w-5 text-green-600" />
                     </div>
-                    <span className="leading-snug"><strong className="text-foreground">Universal protection</strong> — phones, tablets, smart TVs & consoles</span>
+                    <p className="leading-tight">
+                      <strong className="text-foreground">Universal protection</strong> — phones, tablets, smart TVs & consoles
+                    </p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="h-4 w-4 text-primary font-bold" />
+                  <div className="flex items-start gap-3 text-left">
+                    <div className="flex-shrink-0 mt-1">
+                      <Check className="h-5 w-5 text-green-600" />
                     </div>
-                    <span className="leading-snug"><strong className="text-foreground">Setup once, protected 24/7</strong> — in less than 5 minutes</span>
+                    <p className="leading-tight">
+                      <strong className="text-foreground">Setup once, protected 24/7</strong> — in less than 5 minutes
+                    </p>
                   </div>
                 </div>
 
@@ -359,7 +365,6 @@ const Landing = () => {
         />
         <ComparisonSection />
         <FAQSection />
-        <WhatsAppSection />
         <ContactSection />
         <FinalCTASection isAuthenticated={isAuthenticated} />
       </main>

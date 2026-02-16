@@ -42,14 +42,14 @@ export const TierCard = ({
       className={`relative group transition-all duration-300 h-full flex flex-col ${isCurrent
         ? 'border-primary ring-1 ring-primary/20 bg-primary/5 shadow-md'
         : isRecommended
-          ? 'border-primary shadow-xl scale-[1.02] bg-card'
+          ? 'border-primary shadow-[0_0_20px_rgba(0,107,255,0.15)] scale-[1.02] bg-card z-10 ring-1 ring-primary/20'
           : 'border-0 sm:border sm:bg-card bg-transparent shadow-none sm:shadow-sm sm:hover:shadow-md sm:hover:border-primary/30 sm:hover:-translate-y-1'
         }`}
     >
       {isRecommended && !isCurrent && (
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
-          <Badge className="text-[10px] px-2 py-0.5 shadow-sm">
-            Recommended
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+          <Badge className="text-[10px] px-3 py-1 shadow-md bg-primary text-primary-foreground font-bold border-none uppercase tracking-wider">
+            Most Popular
           </Badge>
         </div>
       )}
@@ -77,10 +77,18 @@ export const TierCard = ({
       </CardHeader>
 
       <CardContent className={`space-y-4 ${compact ? 'pb-3 px-4' : 'px-5 md:px-6'}`}>
+        {isRecommended && !isCurrent && (
+          <div className="text-center mb-3">
+            <span className="text-[10px] sm:text-xs font-bold text-primary bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+              2,000+ families already protected
+            </span>
+          </div>
+        )}
+
         {!isCurrent && (
           <Button
             onClick={() => onSelect(tier)}
-            className={`w-full font-medium text-sm ${compact ? 'h-8' : 'h-10'}`}
+            className={`w-full font-bold text-sm shadow-sm transition-all duration-300 ${compact ? 'h-9' : 'h-11'} ${isRecommended ? 'bg-primary hover:bg-primary/90 text-primary-foreground hover:shadow-lg hover:-translate-y-0.5' : ''}`}
             variant={isRecommended ? 'default' : 'outline'}
             size="default"
             disabled={isLoading}
@@ -101,11 +109,11 @@ export const TierCard = ({
 
         <ul className="space-y-3 md:space-y-2.5">
           {tier.features.slice(0, maxFeatures).map((feature, index) => (
-            <li key={index} className="flex items-start gap-2">
+            <li key={index} className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
                 <Check className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-xs sm:text-sm text-foreground/90 leading-snug">
+              <span className="text-xs sm:text-sm text-foreground/90 leading-tight">
                 {formatFeatureName(feature)}
               </span>
             </li>

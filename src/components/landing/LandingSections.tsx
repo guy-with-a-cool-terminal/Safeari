@@ -382,21 +382,6 @@ export const FAQSection = () => {
           ))}
         </Accordion>
 
-        <div className="text-center mt-10 md:mt-12 p-6 md:p-8 rounded-xl bg-secondary border border-border text-foreground">
-          <p className="text-sm md:text-base text-muted-foreground mb-4">Still have questions?</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="mailto:support@safeari.co.ke">
-              <Button variant="outline" size="sm" className="w-full sm:w-auto bg-white hover:bg-white/80">
-                Email Us
-              </Button>
-            </a>
-            <a href="tel:0114399034">
-              <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                Call: 0114399034
-              </Button>
-            </a>
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -418,21 +403,12 @@ export const ContactSection = () => {
       icon: SiWhatsapp,
       title: "WhatsApp Support",
       description: "Join our parent community for instant help and tips from other families",
-      buttonText: "Join WhatsApp Group",
+      buttonText: "Join WhatsApp Community",
       buttonHref: WHATSAPP_LINK,
       buttonVariant: "default" as const,
-      buttonClassName: "bg-green-600 hover:bg-green-700 text-white",
+      buttonClassName: "bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all",
       glowColor: "from-green-500/5",
       isExternal: true
-    },
-    {
-      icon: Phone,
-      title: "Call Us",
-      description: "Speak directly with our support team during business hours",
-      buttonText: "0114399034",
-      buttonHref: "tel:0114399034",
-      buttonVariant: "outline" as const,
-      glowColor: "from-blue-500/5"
     },
     {
       icon: Mail,
@@ -454,23 +430,12 @@ export const ContactSection = () => {
           subtitle="Questions about setup? Need help choosing a plan? Our team is ready to assist you."
         />
 
-        <div className="grid gap-6 md:grid-cols-3 mb-10">
+        <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto mb-10">
           {contactCards.map((card, index) => (
             <ContactCard key={index} {...card} />
           ))}
         </div>
 
-        <div className="rounded-xl bg-card border border-border p-6 md:p-8 shadow-sm">
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 text-primary">
-              <Info className="h-5 w-5" />
-              <h3 className="text-lg font-semibold">Need Help?</h3>
-            </div>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our team is here to assist you. Whether you have questions about setup, features, or billing, we're just a message away.
-            </p>
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -482,7 +447,7 @@ export const FinalCTASection = ({ isAuthenticated }) => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_70%)]" />
       <div className="container space-y-8 max-w-4xl mx-auto relative z-10 text-center">
         <div className="space-y-4">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">Your Kids Are Online Right Now.<br /><span className="text-primary italic">Are They Protected?</span></h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">Your Kids Are Online Right Now.<br /><span className="text-primary">Are They Protected?</span></h2>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
             Join thousands of parents who've stopped worrying about bypasses and workarounds.
           </p>

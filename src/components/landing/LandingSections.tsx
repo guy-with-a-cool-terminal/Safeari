@@ -54,7 +54,7 @@ export const WhySection = () => {
       <div className="container">
         <SectionHeader
           badge={{ icon: Shield, text: "Why Choose Safeari?" }}
-          title="The Protection That Actually Works"
+          title="Why Kenyan Parents Trust Safeari"
           subtitle="Not just another app kids can delete. Safeari protects your family at the source, keeping them safe on every app and device automatically."
         />
 
@@ -70,17 +70,27 @@ export const WhySection = () => {
 
 export const SocialProofSection = () => {
   return (
-    <section className="py-10 border-y border-border/40 bg-muted/5">
+    <section className="py-12 border-y border-border/40 bg-muted/5">
       <div className="container px-4 md:px-6">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full opacity-90">
-          <div className="flex items-center gap-1 text-primary">
-            <Star className="h-5 w-5 fill-primary" />
-            <Star className="h-5 w-5 fill-primary" />
-            <Star className="h-5 w-5 fill-primary" />
-            <Star className="h-5 w-5 fill-primary" />
-            <Star className="h-5 w-5 fill-primary" />
+        <div className="flex flex-col items-center justify-center gap-6 w-full">
+          <p className="text-base md:text-lg font-semibold text-foreground/80 text-center">
+            1 in 10 Kenyan Children Have Been Targeted Online
+          </p>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 w-full">
+            <div className="flex items-center gap-1 text-primary">
+              <Star className="h-5 w-5 fill-primary" />
+              <Star className="h-5 w-5 fill-primary" />
+              <Star className="h-5 w-5 fill-primary" />
+              <Star className="h-5 w-5 fill-primary" />
+              <Star className="h-5 w-5 fill-primary" />
+            </div>
+            <span className="font-semibold text-lg text-foreground">Professional-Grade Protection for Kenyan Families</span>
           </div>
-          <span className="font-semibold text-lg text-foreground">Safe, Reliable & Parent-Approved</span>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 text-sm text-muted-foreground">
+            <span className="flex items-center gap-2"><Check className="h-4 w-4 text-green-600" /> Compliant with Kenya's Child Online Protection Guidelines</span>
+            <span className="flex items-center gap-2"><Check className="h-4 w-4 text-green-600" /> Blocks 10,000+ Harmful Sites</span>
+            <span className="flex items-center gap-2"><Check className="h-4 w-4 text-green-600" /> Free Forever Plan</span>
+          </div>
         </div>
       </div>
     </section>
@@ -151,7 +161,7 @@ export const FeaturesSection = () => {
         <SectionHeader
           badge={{ icon: Shield, text: "Powerful Features, Simple Interface" }}
           title="Complete Protection, Total Control"
-          subtitle="Professional-grade filtering built for real parents. Simple enough to set up in minutes, powerful enough to protect what matters most."
+          subtitle="Stop the threats you can't see. Simple setup, powerful protection, complete peace of mind."
         />
         <div className="grid gap-8 sm:grid-cols-2 max-w-6xl mx-auto">
           {FEATURES.map((f, i) => (
@@ -452,7 +462,7 @@ export const FinalCTASection = ({ isAuthenticated }) => {
         <div className="space-y-4">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">Your Kids Are Online Right Now.<br /><span className="text-primary">Are They Protected?</span></h2>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-            Join thousands of parents who've stopped worrying about bypasses and workarounds.
+            Join Kenyan parents who've stopped worrying about what their children see online.
           </p>
         </div>
 

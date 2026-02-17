@@ -16,38 +16,38 @@ export const NAV_ITEMS = [
 export const WHY_CARDS = [
   {
     icon: Unlock,
-    title: 'Impossible to "Just Delete"',
-    description: "Unlike apps kids can easily bypass or delete, Safeari protects the entire connection. Even tech-savvy kids can't just 'turn it off' to hide their activity.",
+    title: 'Your Child Can\'t Turn Off Protection',
+    description: "Unlike apps kids can delete or VPNs they use to hide, Safeari works at the internet level. Even when they try to bypass it, you'll know immediately.",
     glowColor: "from-red-500/5"
   },
   {
     icon: Shield,
-    title: "One Shield, Every Device",
-    description: "Protection follows your child across phones, tablets, gaming consoles, and even smart TVs. No software to install on every single gadget.",
+    title: "No Unprotected Devices",
+    description: "They can't escape to grandma's tablet or a friend's phone. Protection follows them across every device they use—automatically.",
     glowColor: "from-blue-500/5"
   },
   {
     icon: Clock,
-    title: 'No more "Slow Internet" Fights',
-    description: "Safeari stops harmful sites before they even start loading. It actually makes browsing faster by blocking heavy ads and trackers automatically.",
+    title: 'Actually Makes Internet Faster',
+    description: "Blocks ads and trackers before they download, reducing data usage and speeding up browsing. No performance impact.",
     glowColor: "from-purple-500/5"
   },
   {
     icon: Users,
-    title: "Custom Protection for Each Child",
-    description: "Your 7-year-old and teenager have different needs. Create separate profiles with age-appropriate presets so everyone stays safe.",
+    title: "Age-Appropriate Safety for Each Child",
+    description: "Your 7-year-old and 14-year-old need different protection. Age presets make it simple—no guesswork required.",
     glowColor: "from-green-500/5"
   },
   {
     icon: Eye,
-    title: "Your Privacy is Non-Negotiable",
-    description: "We only log domain names, never personal data or full URLs. Your family's business stays your business. We never sell your data—ever.",
+    title: "Your Family's Privacy is Sacred",
+    description: "We only log domain names (like 'google.com'), never personal data or browsing content. We never sell your data—ever.",
     glowColor: "from-cyan-500/5"
   },
   {
     icon: Smartphone,
-    title: "Protected in 5 Minutes",
-    description: "Simple step-by-step guides for every device. Most parents are fully set up in one sitting. Support available via WhatsApp if you get stuck.",
+    title: "Instant Peace of Mind",
+    description: "Most parents are fully protected in one sitting. Step-by-step guides for every device. WhatsApp support if you get stuck.",
     glowColor: "from-orange-500/5"
   }
 ];

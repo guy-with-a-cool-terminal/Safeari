@@ -266,13 +266,13 @@ const Landing = () => {
 
                 {/* Specific Daily struggle Hook - Non-slanting */}
                 <h1 id="hero-heading" className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
-                  Stop fighting about <br className="hidden md:block" />
-                  <span className="text-primary">TikTok & Social Media.</span>
+                  Your Child is Online Right Now. <br className="hidden md:block" />
+                  <span className="text-primary">Are They Safe?</span>
                 </h1>
 
                 {/* Subheadline - Immediate Relief */}
                 <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium opacity-90">
-                  Block specific apps, set healthy limits, and keep them safe from hidden threats—without the constant workarounds or fights. Setup in 5 minutes.
+                  Block predators, inappropriate content, and harmful apps before they reach your child. Protection that actually works—in 5 minutes.
                 </p>
 
                 {/* Key Benefits - Scannable & Aggressive */}
@@ -282,7 +282,7 @@ const Landing = () => {
                       <Check className="h-5 w-5 text-green-600" />
                     </div>
                     <p className="leading-tight">
-                      <strong className="text-foreground">Impossible to bypass</strong> — blocks VPNs kids use to cheat
+                      <strong className="text-foreground">Stops online predators</strong> — blocks grooming attempts and stranger contact
                     </p>
                   </div>
                   <div className="flex items-start gap-3 text-left">
@@ -290,7 +290,7 @@ const Landing = () => {
                       <Check className="h-5 w-5 text-green-600" />
                     </div>
                     <p className="leading-tight">
-                      <strong className="text-foreground">Universal protection</strong> — phones, tablets, smart TVs & consoles
+                      <strong className="text-foreground">Filters harmful content</strong> — pornography, violence, and self-harm sites never reach them
                     </p>
                   </div>
                   <div className="flex items-start gap-3 text-left">
@@ -298,7 +298,7 @@ const Landing = () => {
                       <Check className="h-5 w-5 text-green-600" />
                     </div>
                     <p className="leading-tight">
-                      <strong className="text-foreground">Setup once, protected 24/7</strong> — in less than 5 minutes
+                      <strong className="text-foreground">Works everywhere</strong> — protection follows them to friends' houses, school, anywhere
                     </p>
                   </div>
                 </div>

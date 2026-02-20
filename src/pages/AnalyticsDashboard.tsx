@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,16 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DonutChart from "@/components/dashboard/DonutChart";
 import SeamlessSection from "@/components/ui/SeamlessSection";
+import ActivitySparkline from "@/components/dashboard/ActivitySparkline";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useToast } from "@/hooks/use-toast";
@@ -54,6 +48,7 @@ import {
   type BlockReason,
 } from "@/lib/analyticsUtils";
 import { getLogsLimit } from "@/lib/analyticsUtils";
+
 
 const ParentAnalyticsDashboard = () => {
   const { currentProfile } = useProfile();
@@ -384,7 +379,6 @@ const ParentAnalyticsDashboard = () => {
         </div>
       )}
 
-      {/* NEW PREMIUM HEADER */}
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           {currentProfile.display_name}'s Safety Snapshot
@@ -578,57 +572,9 @@ const ParentAnalyticsDashboard = () => {
                   </div>
                 </div>
 
-                {/* Timeline Chart */}
-                <div className="h-72 flex items-end gap-2 overflow-x-auto pb-4 px-2 no-scrollbar">
-                  {chartData.map((item, i) => {
-                    const total = item.allowed + item.blocked;
-                    const allowedHeight = ((item.allowed / maxTimelineValue) * 100);
-                    const blockedHeight = ((item.blocked / maxTimelineValue) * 100);
-                    const totalHeight = allowedHeight + blockedHeight;
-
-                    return (
-                      <div key={i} className="flex-1 flex flex-col items-center min-w-[36px] max-w-[52px]">
-                        <div className="w-full h-full flex flex-col justify-end mb-3 relative group cursor-pointer">
-                          {/* Single bar with smooth gradient */}
-                          <div
-                            className="w-full relative rounded-t-lg overflow-hidden transition-all duration-300 shadow-sm"
-                            style={{
-                              height: `${Math.max(totalHeight, 5)}%`,
-                              minHeight: total > 0 ? '24px' : '8px',
-                              background: item.blocked > 0
-                                ? `linear-gradient(to top, 
-                                    #10b981 0%, 
-                                    #10b981 ${(item.allowed / total * 100) - 2}%, 
-                                    #f43f5e ${(item.allowed / total * 100) + 2}%, 
-                                    #e11d48 100%)`
-                                : `linear-gradient(to top, #10b981, #059669)`,
-                            }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
-                            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors pointer-events-none" />
-                          </div>
-
-                          {/* Tooltip hint on hover */}
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg border">
-                            {total} req
-                          </div>
-                        </div>
-                        <div className="text-[10px] font-bold uppercase tracking-tighter text-muted-foreground/60">{item.time}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Compact Legend */}
-                <div className="flex justify-center gap-6 mt-8 py-3 border-t border-border/30">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-[#10b981] rounded shadow-sm" />
-                    <span className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider">Safe Browsing</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-[#f43f5e] rounded shadow-sm" />
-                    <span className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider">Blocked Threats</span>
-                  </div>
+                {/* Dynamic Storytelling Sparkline - Integrated Component */}
+                <div className="py-2">
+                  <ActivitySparkline chartData={chartData} maxValue={maxTimelineValue} />
                 </div>
               </TabsContent>
 

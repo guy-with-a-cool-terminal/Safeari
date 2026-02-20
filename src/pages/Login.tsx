@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, Lock, Shield } from "lucide-react";
+import { ArrowLeft, Mail, Lock, Shield, Eye, EyeOff } from "lucide-react";
 import { login } from "@/lib/api";
 import { verifyCallback } from "@/lib/api/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,7 @@ const Login = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isOAuthCallback, setIsOAuthCallback] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string>("");
     const [errors, setErrors] = useState({
         email: "",
@@ -207,10 +208,15 @@ const Login = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center space-y-6">
-                    <img src={SafeariFullLogo} alt="Safeari" className="h-20 w-auto mx-auto" />
+                    <div className="relative inline-block">
+                        <img src={SafeariFullLogo} alt="Safeari" className="h-20 w-auto mx-auto animate-pulse" />
+                        <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150 animate-pulse -z-10" />
+                    </div>
                     <div className="space-y-3">
-                        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                        <p className="text-muted-foreground">Signing you in...</p>
+                        <div className="h-1.5 w-32 bg-muted rounded-full overflow-hidden mx-auto">
+                            <div className="h-full bg-primary animate-loading-bar" />
+                        </div>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/60 animate-pulse">Authenticating</p>
                     </div>
                 </div>
             </div>
@@ -291,12 +297,19 @@ const Login = () => {
                                         <Input
                                             id="password"
                                             name="password"
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             placeholder="••••••••"
                                             value={formData.password}
                                             onChange={handleChange}
-                                            className={`pl-10 h-11 bg-background/50 border-border/40 focus:border-primary/40 focus:ring-primary/10 transition-all ${errors.password ? "border-destructive/50" : ""}`}
+                                            className={`pl-10 pr-10 h-11 bg-background/50 border-border/40 focus:border-primary/40 focus:ring-primary/10 transition-all ${errors.password ? "border-destructive/50" : ""}`}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
                                     </div>
                                     {errors.password && (
                                         <p className="text-[10px] text-destructive font-medium mt-1 ml-1">{errors.password}</p>

@@ -11,10 +11,112 @@ import { cn } from "@/lib/utils";
 import { SiWhatsapp } from "@icons-pack/react-simple-icons";
 import SafeariFullLogo from "@/assets/logofull.svg";
 import SafeariShieldLogo from "@/assets/favicon.svg";
+import timelineImg from "@/assets/timeline.png";
+import socialsImg from "@/assets/socials.png";
+import safesearchImg from "@/assets/safesearch.png";
+import listsImg from "@/assets/lists.png";
+import categoriesImg from "@/assets/categories.png";
 
 const SafeariIcon = ({ className }: { className?: string }) => (
   <img src={SafeariShieldLogo} alt="Safeari" className={cn("object-contain", className)} />
 );
+
+const ScreenshotsContent = () => {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const footer = document.getElementById("pitch-footer");
+    if (footer) {
+      footer.style.display = selectedIndex !== null ? "none" : "flex";
+    }
+    return () => {
+      if (footer) footer.style.display = "flex";
+    };
+  }, [selectedIndex]);
+
+  const items = [
+    { src: categoriesImg, caption: "Porn, gambling, dating, piracy — entire categories blocked with one toggle. You choose the risk level." },
+    { src: timelineImg, caption: "Every threat blocked automatically — you see the full picture, your child sees nothing harmful." },
+    { src: socialsImg, caption: "Every major app, one toggle. You choose what's allowed and what isn't." },
+    { src: safesearchImg, caption: "Safe search enforced on every search engine. YouTube restricted. VPNs blocked." },
+    { src: listsImg, caption: "Not in our categories? Type any URL and block it instantly. You're always in control." },
+  ];
+
+  const navigate = (direction: number) => {
+    setSelectedIndex((prev) => {
+      if (prev === null) return null;
+      const nextIndex = prev + direction;
+      if (nextIndex < 0) return items.length - 1;
+      if (nextIndex >= items.length) return 0;
+      return nextIndex;
+    });
+  };
+
+  return (
+    <>
+      {selectedIndex !== null && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 md:p-12"
+          onClick={() => setSelectedIndex(null)}
+        >
+          <div className="relative w-full max-w-5xl h-full flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+             <img src={items[selectedIndex].src} alt="Expanded view" className="max-h-[70vh] md:max-h-[80vh] w-auto rounded-2xl object-contain shadow-2xl border border-white/10" />
+             
+             <div className="mt-8 text-center text-white max-w-2xl px-4">
+                <p className="text-lg md:text-xl font-medium leading-relaxed">{items[selectedIndex].caption}</p>
+             </div>
+             
+             {/* Modal Controls */}
+             <Button variant="ghost" size="icon" className="absolute top-0 right-0 md:top-4 md:right-4 text-white hover:bg-white/20 rounded-full" onClick={() => setSelectedIndex(null)}>
+                <X className="h-8 w-8" />
+             </Button>
+             
+             <Button variant="ghost" size="icon" className="absolute left-0 md:-left-16 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 rounded-full h-12 w-12 md:h-16 md:w-16" onClick={() => navigate(-1)}>
+                <ChevronLeft className="h-8 w-8 md:h-12 md:w-12" />
+             </Button>
+             
+             <Button variant="ghost" size="icon" className="absolute right-0 md:-right-16 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 rounded-full h-12 w-12 md:h-16 md:w-16" onClick={() => navigate(1)}>
+                <ChevronRight className="h-8 w-8 md:h-12 md:w-12" />
+             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Container: Carousel scroll on mobile, Grid on desktop */}
+      <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-8 md:pb-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+        {items.map((s, i) => (
+          <div 
+            key={i} 
+            className="flex-shrink-0 w-[85vw] md:w-auto flex flex-col gap-4 cursor-pointer snap-center group" 
+            onClick={() => setSelectedIndex(i)}
+          >
+            <div className="relative overflow-hidden rounded-2xl bg-card border border-border/50 group-hover:border-primary/50 transition-all shadow-sm group-hover:shadow-md">
+              <img src={s.src} alt={s.caption} className="w-full object-cover object-top aspect-[4/3] md:aspect-video md:max-h-64 group-hover:scale-105 transition-transform duration-700" />
+              <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors flex items-center justify-center">
+                 <div className="bg-primary text-primary-foreground p-3 rounded-full opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-300">
+                    <Maximize2 className="h-6 w-6" />
+                 </div>
+              </div>
+            </div>
+            <p className="text-sm md:text-base text-muted-foreground text-center px-2 line-clamp-2 md:line-clamp-none leading-relaxed font-medium">
+              {s.caption}
+            </p>
+          </div>
+        ))}
+      </div>
+      
+      {/* Mobile Hint */}
+      <div className="flex md:hidden justify-center items-center gap-2 mt-2 text-muted-foreground text-xs font-medium uppercase tracking-widest">
+         <span>Swipe</span>
+         <div className="flex gap-1">
+            {items.map((_, i) => (
+              <div key={i} className="w-1 h-1 rounded-full bg-primary/20" />
+            ))}
+         </div>
+      </div>
+    </>
+  );
+};
 
 // --- Presentation Data ---
 const SLIDES = [
@@ -305,6 +407,12 @@ const SLIDES = [
     )
   },
   {
+    id: "screenshots",
+    title: "See it in action",
+    subtitle: "Tap any screenshot to see it up close.",
+    content: <ScreenshotsContent />
+  },
+  {
     id: "pricing",
     title: "Simple pricing. Start free.",
     subtitle: "Protecting your family costs less than one week of mobile data.",
@@ -346,7 +454,7 @@ const SLIDES = [
   {
     id: "moat",
     title: "Built for Kenya, not adapted for it",
-    subtitle: "Built specifically for the African context.",
+    subtitle: "Designed around how you actually live.",
     content: (
       <div className="flex flex-col h-full justify-center space-y-12">
         <div className="grid md:grid-cols-3 gap-8 items-center">
@@ -550,7 +658,7 @@ export default function PitchDeck() {
       </main>
 
       {/* Navigation Footer */}
-      <footer className="sticky bottom-0 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-t bg-card/80 backdrop-blur z-50">
+      <footer id="pitch-footer" className="sticky bottom-0 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-t bg-card/80 backdrop-blur z-50">
         <div className="text-sm font-medium text-muted-foreground">
            Slide {currentSlide + 1} of {SLIDES.length}
         </div>

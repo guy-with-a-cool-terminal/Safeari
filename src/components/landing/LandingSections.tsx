@@ -191,9 +191,7 @@ export const PricingSection = ({ tiers, tiersLoading, handleTierSelect }) => {
             <strong className="text-primary font-semibold">Why we offer a free plan:</strong> We believe every child deserves protection, regardless of family budget. Our free tier includes full filtering—paid plans just add more profiles and analytics history.
           </div>
 
-          <p className="text-xs sm:text-sm text-muted-foreground px-4 py-2 border border-border/20 inline-block rounded-lg bg-background/50">
-            Prices are shown in USD. Final amount will be calculated in your local currency at checkout.
-          </p>
+
         </div>
 
         {tiersLoading ? (
@@ -215,7 +213,7 @@ export const PricingSection = ({ tiers, tiersLoading, handleTierSelect }) => {
         )}
 
         <p className="text-base text-muted-foreground mt-8 font-semibold tracking-tight text-primary/60">
-          That's less than your child's daily lunch money
+          That's less than what you pay for a single weekly data bundle
         </p>
 
         <div className="pt-16 border-t border-border/10 overflow-hidden relative">

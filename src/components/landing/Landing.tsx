@@ -266,13 +266,12 @@ const Landing = () => {
 
                 {/* Specific Daily struggle Hook - Non-slanting */}
                 <h1 id="hero-heading" className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
-                  Your Child is Online Right Now. <br className="hidden md:block" />
-                  <span className="text-primary">Are They Safe?</span>
+                  The internet came with their device. <span className="text-primary">Safety didn't.</span>
                 </h1>
 
                 {/* Subheadline - Immediate Relief */}
                 <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium opacity-90">
-                  Block predators, inappropriate content, and harmful apps before they reach your child. Protection that actually works—in 5 minutes.
+                  Network-level protection that stops harmful content before it reaches your child. No apps to delete, no complex setup—just safety that works automatically.
                 </p>
 
                 {/* Key Benefits - Scannable & Aggressive */}

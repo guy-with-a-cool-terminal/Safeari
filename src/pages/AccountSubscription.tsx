@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Check, Loader2, AlertTriangle, TrendingUp, Calendar, Zap, CreditCard, Sparkles } from "lucide-react";
-import { formatFeatureName } from "@/lib/utils";
+import { formatFeatureName, formatKsh } from "@/lib/utils";
 import { PaymentModal } from "@/components/payment/PaymentModal";
 import { UpgradeWarningDialog } from "@/components/subscription/UpgradeWarningDialog";
 import { GlobalNav } from "@/components/navigation/GlobalNav";
@@ -240,7 +240,7 @@ const AccountSubscription = () => {
               </div>
               {subscription.tier !== 'free' && (
                 <div className="flex flex-col items-start sm:items-end gap-0.5">
-                  <span className="text-xl sm:text-2xl font-bold">${currentTierData?.price_monthly || 0}</span>
+                  <span className="text-xl sm:text-2xl font-bold">{formatKsh(currentTierData?.price_monthly || 0)}</span>
                   <span className="text-xs text-muted-foreground">per month</span>
                 </div>
               )}

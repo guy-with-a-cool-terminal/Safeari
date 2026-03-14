@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { formatKsh } from "@/lib/utils";
 
 export const InvoiceSection = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -88,7 +89,7 @@ export const InvoiceSection = () => {
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
                       <span>{format(new Date(invoice.issued_at), 'MMM dd, yyyy')}</span>
                       <span className="font-medium text-foreground">
-                        {invoice.currency} {invoice.amount}
+                        {formatKsh(parseFloat(String(invoice.amount)))}
                       </span>
                       <span className="capitalize px-2 py-0.5 rounded-full bg-success/10 text-success">
                         {invoice.status}

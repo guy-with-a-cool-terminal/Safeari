@@ -38,3 +38,15 @@ export function formatFeatureName(feature: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 }
+
+export const USD_TO_KES_RATE = 130;
+
+export function formatKsh(usdAmount: number): string {
+  const kesAmount = usdAmount * USD_TO_KES_RATE;
+  return new Intl.NumberFormat('en-KE', {
+    style: 'currency',
+    currency: 'KES',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(kesAmount);
+}

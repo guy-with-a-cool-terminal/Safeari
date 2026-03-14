@@ -30,6 +30,7 @@ import AccountSubscription from "./pages/AccountSubscription";
 import UsageBilling from "./pages/UsageBilling";
 import NotFound from "./pages/NotFound";
 import PaymentCallback from "./pages/PaymentCallback";
+import PitchDeck from "./pages/PitchDeck";
 import { RateLimitProvider } from "./contexts/RateLimitContext";
 
 const App = () => (
@@ -51,6 +52,7 @@ const App = () => (
                       <Route path="/register" element={<Register />} />
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/pitch" element={<PitchDeck />} />
                       <Route
                         path="/onboarding/subscription"
                         element={

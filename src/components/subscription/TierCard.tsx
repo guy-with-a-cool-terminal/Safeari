@@ -2,7 +2,7 @@ import { Check, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatFeatureName } from "@/lib/utils";
+import { formatFeatureName, formatKsh } from "@/lib/utils";
 import type { SubscriptionTier } from "@/lib/api/types";
 
 interface TierCardProps {
@@ -71,7 +71,7 @@ export const TierCard = ({
         </CardTitle>
         <div className="flex items-baseline gap-1">
           <span className={compact ? 'text-xl sm:text-2xl font-bold' : 'text-3xl sm:text-4xl font-bold'}>
-            ${tier.price_monthly}
+            {formatKsh(tier.price_monthly)}
           </span>
           <span className="text-sm text-muted-foreground">/month</span>
         </div>

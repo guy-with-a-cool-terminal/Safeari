@@ -11,6 +11,7 @@ import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getUsageSummary, getInvoices, type UsageSummary, type Invoice } from "@/lib/api/subscriptions";
 import { BarChart3, FileText, Download, AlertTriangle, TrendingUp, Package } from "lucide-react";
+import { formatKsh } from "@/lib/utils";
 
 const UsageBilling = () => {
   const { subscription, subscriptionTier, isLoading: subLoading } = useSubscription();
@@ -225,7 +226,7 @@ const UsageBilling = () => {
                           </div>
                           <div className="text-sm text-muted-foreground space-y-1">
                             <p>Date: {new Date(invoice.issued_at).toLocaleDateString()}</p>
-                            <p>Amount: {invoice.currency} {parseFloat(invoice.amount).toLocaleString()}</p>
+                            <p>Amount: {formatKsh(parseFloat(String(invoice.amount)))}</p>
                           </div>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2">

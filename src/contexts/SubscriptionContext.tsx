@@ -42,10 +42,18 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     const isPaymentCallback = location.pathname.startsWith('/payment/callback');
 
     // If authenticated, finished loading, and no subscription found
-    if (!subscriptionQuery.isLoading && subscriptionQuery.data === null && !isPublicPath && !isOnboardingPath && !isPaymentCallback) {
+    // We also check !subscriptionQuery.isFetching to avoid redirecting while a background refetch 
+    // (e.g. after a mutation) is in progress.
+    if (!subscriptionQuery.isLoading && 
+        !subscriptionQuery.isFetching && 
+        subscriptionQuery.data === null && 
+        !isPublicPath && 
+        !isOnboardingPath && 
+        !isPaymentCallback) {
+      console.log('[Subscription] No active plan found, redirecting to selection...');
       navigate('/onboarding/subscription', { replace: true });
     }
-  }, [subscriptionQuery.data, subscriptionQuery.isLoading, location.pathname, navigate]);
+  }, [subscriptionQuery.data, subscriptionQuery.isLoading, subscriptionQuery.isFetching, location.pathname, navigate]);
 
   // Find matching tier details
   const subscriptionTier = useMemo(() => {

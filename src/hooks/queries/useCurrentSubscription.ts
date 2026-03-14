@@ -25,5 +25,13 @@ export function useCurrentSubscription() {
     enabled: isAuthenticated(), // Only fetch if user is logged in
     staleTime: 1 * 60 * 1000, // 1 minute
     cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry if it's a 404 (No subscription found)
+      // This prevents backend log spam when users haven't chosen a plan yet
+      if (error.response?.status === 404) return false;
+      
+      // Standard retry for other errors (network issues, 500s)
+      return failureCount < 2;
+    },
   });
 }

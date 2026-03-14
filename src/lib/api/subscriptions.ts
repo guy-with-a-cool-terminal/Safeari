@@ -115,9 +115,16 @@ export const getSubscriptionTiers = async (): Promise<SubscriptionTier[]> => {
 // SUBSCRIPTION MANAGEMENT
 // ============================================================
 
-export const getCurrentSubscription = async (): Promise<Subscription> => {
-  const response = await apiClient.getClient().get<Subscription>('/api/v1/subscriptions/current/');
-  return response.data;
+export const getCurrentSubscription = async (): Promise<Subscription | null> => {
+  try {
+    const response = await apiClient.getClient().get<Subscription>('/api/v1/subscriptions/current/');
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      return null;
+    }
+    throw error;
+  }
 };
 
 export const createSubscription = async (

@@ -1,4 +1,5 @@
-import { createContext, useContext, ReactNode, useMemo } from 'react';
+import { createContext, useContext, ReactNode, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCurrentSubscription, useSubscriptionTiers } from '@/hooks/queries';
 import type { Subscription, SubscriptionTier } from '@/lib/api/subscriptions';
 
@@ -27,9 +28,24 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
  * - Offline support via React Query persistence
  */
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Use React Query hooks directly
   const subscriptionQuery = useCurrentSubscription();
   const tiersQuery = useSubscriptionTiers();
+
+  // Logic to handle missing subscription: Redirect to selection if not on onboarding/auth pages
+  useEffect(() => {
+    const isPublicPath = ['/', '/login', '/register', '/terms', '/privacy', '/pitch'].includes(location.pathname);
+    const isOnboardingPath = location.pathname.startsWith('/onboarding');
+    const isPaymentCallback = location.pathname.startsWith('/payment/callback');
+
+    // If authenticated, finished loading, and no subscription found
+    if (!subscriptionQuery.isLoading && subscriptionQuery.data === null && !isPublicPath && !isOnboardingPath && !isPaymentCallback) {
+      navigate('/onboarding/subscription', { replace: true });
+    }
+  }, [subscriptionQuery.data, subscriptionQuery.isLoading, location.pathname, navigate]);
 
   // Find matching tier details
   const subscriptionTier = useMemo(() => {
